@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="teal_gradient">#17ead9</color>
+    <color name="blue_gradient">#6078ea</color>
+    <color name="text_shadow">#7F000000</color>
+    <color name="matte_black">#FF28282b</color>
+    <color name="darker_white_dump">#EBECF0</color>
+    <color name="darker_white">#FFF6F6F6</color>
+    <color name="darker_white_dump3">#FFEBECF0</color>
+    <color name="list_title">#FF001339</color>
+    <color name="red">#FF0000</color>
+
+    <color name="ruby_red">#FF991B1B</color>
+    <color name="primaryColor">@color/ruby_red</color>
+    <color name="primaryDarkColor">#640000</color>
+
+    <color name="rich_black">#FF001427</color>
+    <color name="secondaryColor">@color/rich_black</color>
+    <color name="secondaryDarkColor">@color/black</color>
+
+    <color name="gray_web">#FF7E7F83</color>
+</resources>

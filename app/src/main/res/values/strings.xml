@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">TICaP Hub</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Events</string>
+    <string name="title_user">User Account</string>
+    <string name="title_task_details">Task Details</string>
+    <string name="empty_task_prompt">You\'re all caught up! There are no assigned tasks for you right now.</string>
+    <string name="empty_task_list">This list doesn\'t contain a task as of the moment.</string>
+    <string name="empty_board_list">This board doesn\'t contain a list as of the moment.</string>
+    <string name="no_access_eventboard">Access denied. You don\'t have permission to view this page.</string>
+    <string name="title_forgot_password">Reset Password</string>
+    <string name="title_add_list">Add List</string>
+    <string name="title_add_task">Add Task</string>
+    <string name="title_move_task">Move Task To Another List</string>
+    <string name="title_complete_task">Mark as Complete</string>
+</resources>
