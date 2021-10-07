@@ -1,6 +1,5 @@
 package com.cyberace.ticaphub.ui.eventboard
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +11,7 @@ import com.cyberace.ticaphub.model.TaskCardClass
 import kotlinx.android.synthetic.main.adapter_task_list.view.*
 
 class TaskListAdapter(
-    private val listener: OnItemClickListener,
-    val context: Context
+    private val listener: OnItemClickListener
 ): RecyclerView.Adapter<TaskListAdapter.TaskListViewHolder>() {
 
 

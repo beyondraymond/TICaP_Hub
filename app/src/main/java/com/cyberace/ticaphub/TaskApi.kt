@@ -53,7 +53,6 @@ interface TaskApi {
     ): Response<ResponseClass>
 
     @FormUrlEncoded
-    //Create PHP for this later sksksksks
     @POST("move-task.php")
     suspend fun moveTask(
         @Field("task_id") taskID: Int,
@@ -63,5 +62,6 @@ interface TaskApi {
     @GET("get-event-id.php") //Add the uri segment to access the tasks from db
     suspend fun getEventID(@Query(value = "listID") listID: Int): Response<ResponseClass>
 
-
+    @GET("activity.php") //Add the uri segment to access the tasks from db
+    suspend fun getActivities(@Query(value = "taskID") taskID: Int): Response<ActivityClass>
 }

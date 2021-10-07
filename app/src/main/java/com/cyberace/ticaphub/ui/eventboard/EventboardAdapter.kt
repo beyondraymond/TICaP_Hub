@@ -1,8 +1,6 @@
 package com.cyberace.ticaphub.ui.eventboard
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +10,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cyberace.ticaphub.R
-import com.cyberace.ticaphub.TaskDetailsActivity
 import com.cyberace.ticaphub.model.TaskCardClass
 import com.cyberace.ticaphub.model.TaskListClass
 import kotlinx.android.synthetic.main.adapter_event_board.view.*
@@ -86,7 +83,7 @@ class EventboardAdapter(
     }
 
     private fun populateBoards(recyclerView: RecyclerView, taskCardList: List<TaskCardClass>, context: Context){
-        val todoAdapter = TaskListAdapter(this, context)
+        val todoAdapter = TaskListAdapter(this)
 
         recyclerView.adapter = todoAdapter
         recyclerView.layoutManager = LinearLayoutManager(context)

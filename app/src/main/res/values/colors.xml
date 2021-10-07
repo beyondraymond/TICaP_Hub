@@ -16,6 +16,7 @@
     <color name="darker_white_dump3">#FFEBECF0</color>
     <color name="list_title">#FF001339</color>
     <color name="red">#FF0000</color>
+    <color name="blue">#0000FF</color>
 
     <color name="ruby_red">#FF991B1B</color>
     <color name="primaryColor">@color/ruby_red</color>

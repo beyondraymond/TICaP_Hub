@@ -1,12 +1,8 @@
-package com.cyberace.ticaphub
+package com.cyberace.ticaphub.ui.taskDetails
 
 import android.annotation.SuppressLint
-import android.app.DownloadManager
-import android.content.Context
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import androidx.lifecycle.lifecycleScope
@@ -15,13 +11,12 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import android.view.MenuItem
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.get
+import com.cyberace.ticaphub.R
+import com.cyberace.ticaphub.RetrofitInstance
 import com.cyberace.ticaphub.model.TaskCardClass
-import com.cyberace.ticaphub.model.TaskListClass
 import kotlinx.android.synthetic.main.activity_events.*
 import kotlinx.android.synthetic.main.dialog_add_new_board.view.*
 import kotlinx.android.synthetic.main.dialog_choose_task_list.*
@@ -45,6 +40,8 @@ class TaskDetailsActivity : AppCompatActivity() {
 
         val dateFormatter = SimpleDateFormat("MMMM dd, yyyy 'at' h:mm a")
 
+        //Add a logic na kapag nai-tap yung task desccription, makikita yung full view ng task and kapag officer yung user, pwede niya i-edit
+
         lifecycleScope.launch {
             val response = try {
                 RetrofitInstance.api.getTask(intent.getIntExtra("id", 0))
@@ -58,10 +55,9 @@ class TaskDetailsActivity : AppCompatActivity() {
             if(response.isSuccessful && response.body() != null) {
                 fetchedTask = response.body()!!
                 txtTaskTitle.text = fetchedTask.title
-                editTxtTaskDesc.setText(fetchedTask.description)
+                txtTaskDesc.setText(fetchedTask.description)
                 try {
                     var taskDate = dateSQLFormat.parse(fetchedTask.created_at)
-                    txtDateCreated.text = "Date Created: " + dateFormatter.format(taskDate)
                     taskDate = dateSQLFormat.parse(fetchedTask.updated_at)
                     txtLastUpdated.text = "Last Updated: " + dateFormatter.format(taskDate)
                 } catch (e: Exception) {
@@ -99,24 +95,24 @@ class TaskDetailsActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        btnDownload.setOnClickListener {
-            val urlRequest = baseUrl+txtFileName.text.toString()
-            val request = DownloadManager.Request(Uri.parse(urlRequest))
-            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            //val title = URLUtil.guessFileName(urlRequest, null, null)
-            //val cookie = CookieManager.getInstance().getCookie(urlRequest)
-
-            request.setTitle(txtFileName.text.toString())
-            request.setDescription("Downloading File Attachments.")
-            //request.addRequestHeader("cookie", cookie)
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, txtFileName.text.toString())
-            request.setAllowedOverMetered(true)
-            downloadManager.enqueue(request)
-
-            Toast.makeText(this, "Downloading Attachment", Toast.LENGTH_SHORT).show()
-
-        }
+//        btnDownload.setOnClickListener {
+//            val urlRequest = baseUrl+txtFileName.text.toString()
+//            val request = DownloadManager.Request(Uri.parse(urlRequest))
+//            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+//            //val title = URLUtil.guessFileName(urlRequest, null, null)
+//            //val cookie = CookieManager.getInstance().getCookie(urlRequest)
+//
+//            request.setTitle(txtFileName.text.toString())
+//            request.setDescription("Downloading File Attachments.")
+//            //request.addRequestHeader("cookie", cookie)
+//            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+//            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, txtFileName.text.toString())
+//            request.setAllowedOverMetered(true)
+//            downloadManager.enqueue(request)
+//
+//            Toast.makeText(this, "Downloading Attachment", Toast.LENGTH_SHORT).show()
+//
+//        }
 
     }
 
@@ -173,7 +169,8 @@ class TaskDetailsActivity : AppCompatActivity() {
             }
             if (response.isSuccessful && response.body() != null) {
                 val inflater = this@TaskDetailsActivity.layoutInflater.inflate(R.layout.dialog_choose_task_list,null)
-                inflater.spinnerTaskLists.adapter = ArrayAdapter<String>(this@TaskDetailsActivity, R.layout.support_simple_spinner_dropdown_item, response.body()!!.map { it.title })
+                inflater.spinnerTaskLists.adapter = ArrayAdapter<String>(this@TaskDetailsActivity,
+                    R.layout.support_simple_spinner_dropdown_item, response.body()!!.map { it.title })
                 AlertDialog.Builder(this@TaskDetailsActivity)
                     .setTitle("Move Task To Another List")
                     .setView(inflater)
