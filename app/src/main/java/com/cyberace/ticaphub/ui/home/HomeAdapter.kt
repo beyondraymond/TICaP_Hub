@@ -1,5 +1,7 @@
 package com.cyberace.ticaphub.ui.home
 
+import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +13,6 @@ import com.cyberace.ticaphub.R
 import com.cyberace.ticaphub.model.TaskCardClass
 import kotlinx.android.synthetic.main.adapter_home_card.view.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 class HomeAdapter(
     private val listener: OnItemClickListener
@@ -20,6 +21,7 @@ class HomeAdapter(
     inner class HomeViewHolder(itemView: View): RecyclerView.ViewHolder(itemView),
         View.OnClickListener{
 
+        //Add an onlick interface para sa download linkeu
         init {
             itemView.setOnClickListener(this)
         }
@@ -60,27 +62,34 @@ class HomeAdapter(
         return todos.size
     }
 
+    @SuppressLint("SimpleDateFormat")
     override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
         //The following variable will parse the SQL date into a readable Java Date
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-        var taskDate: Date = dateFormat.parse("2001-1-1")
+        var dateSQLFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSz")
+
+        if (Build.VERSION.SDK_INT >= 24){
+            dateSQLFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX")
+        }
+
+        var taskDate = dateSQLFormat.parse("2021-10-19T15:47:10.000000Z")
 
         val dayNameFormatter = SimpleDateFormat("EEE")
         val dayNumberFormatter = SimpleDateFormat("dd")
         val monthNameFormatter = SimpleDateFormat("MMM")
 
         holder.itemView.apply {
+
             try {
-                taskDate = dateFormat.parse(todos[position].created_at)
+                taskDate = dateSQLFormat.parse(todos[position].created_at)!!
             } catch (e: Exception) {
                 Log.e("Date Parse", e.message.toString())
             }
 
             txtTaskTitle.text = todos[position].title
             txtTaskDesc.text = todos[position].description
-            txtDayName.text = dayNameFormatter.format(taskDate)
-            txtDayNumber.text = dayNumberFormatter.format(taskDate)
-            txtMonthName.text = monthNameFormatter.format(taskDate)
+            txtDayName.text = dayNameFormatter.format(taskDate!!)
+            txtDayNumber.text = dayNumberFormatter.format(taskDate!!)
+            txtMonthName.text = monthNameFormatter.format(taskDate!!)
         }
     }
 }

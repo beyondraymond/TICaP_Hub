@@ -1,5 +1,6 @@
 package com.cyberace.ticaphub.ui.eventboard
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -30,7 +31,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
     private val eventBoardAdapter = EventboardAdapter(this)
     private val tagName = "E-List Fragment"
 
-    val resultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+    private val resultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
         if (it.resultCode == RESULT_OK){
             fetchBoards()
         }
@@ -43,7 +44,6 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
         //setHasOptionsMenu(true) try mo muna i-implement yung menu na wala to
 
         supportActionBar?.title = intent.getStringExtra("event-name")
-
 
         rvEventBoard.adapter = eventBoardAdapter
         rvEventBoard.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -59,40 +59,60 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
             refreshLayoutEventBoard.isRefreshing = true
             fetchBoards()
             refreshLayoutEventBoard.isRefreshing = false
-            //Run tests kung pano siya magreact kapag empty yung task lists/task board
-
-
         }
     }
 
 
 
+    @SuppressLint("SetTextI18n")
     private fun fetchBoards(){
+//        val bundle = intent.extras
+//        val event: EventClass = bundle?.getParcelable("event")!!
+
         lifecycleScope.launch {
             val response = try {
-                RetrofitInstance.api.getBoards(intent.getIntExtra("id", 0))
+                RetrofitInstance.api.getBoards(
+                    "Bearer " + this@EventboardActivity
+                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                .getString("userToken", "0"),
+                    intent.getIntExtra("eventID", 0)
+                )
             } catch (e: IOException) {
-                Log.e(tagName, e.message.toString())
+                rvEventBoard.visibility = View.GONE
+                txtPromptEventboard.text = "IO Error: Failed to connect to the server"
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, "IO Error:" + e.message.toString())
                 return@launch
             } catch (e: HttpException) {
-                Log.e(tagName, "HttpException, unexpected response")
+                rvEventBoard.visibility = View.GONE
+                txtPromptEventboard.text = "HTTP Error: Unexpected response from the server"
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, "HTTP Error:" + e.message.toString())
                 return@launch
             }
             if (response.isSuccessful && response.body() != null) {
-                if (response.body()!!.isEmpty()){
+                if (response.body()!!.lists.isEmpty()){
                     rvEventBoard.visibility = View.GONE
                     txtPromptEventboard.visibility = View.VISIBLE
                     imageViewEventBoard.visibility = View.VISIBLE
                 }else{
-                    eventBoardAdapter.taskLists = response.body()!!
+                    eventBoardAdapter.taskLists = response.body()!!.lists
                     rvEventBoard.visibility = View.VISIBLE
                     txtPromptEventboard.visibility = View.GONE
                     imageViewEventBoard.visibility = View.GONE
                 }
             } else {
-                Log.e(tagName, "Response not successful")
+                val msg= "Response not successful"
+                rvEventBoard.visibility = View.GONE
+                txtPromptEventboard.text = msg
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, msg)
             }
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -120,9 +140,12 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                         lifecycleScope.launch {
                             val response = try {
                                 RetrofitInstance.api.addBoard(
-                                    inflater.inputBoardName.text.toString(),
-                                    intent.getIntExtra("id", 0),
-                                    getSharedPreferences("loginCredential", Context.MODE_PRIVATE).getInt("userID", 0))
+                                    "Bearer " + this@EventboardActivity
+                                        .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                        .getString("userToken", "0"),
+                                    intent.getIntExtra("eventID", 0),
+                                    inflater.inputBoardName.text.toString()
+                                )
                             } catch(e: IOException) {
                                 Log.e(tag, e.message.toString())
                                 return@launch
@@ -130,7 +153,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                                 Log.e(tag, "HttpException, unexpected response")
                                 return@launch
                             }
-                            if(response.isSuccessful && response.body()!!.sqlResponse == "201") {
+                            if(response.isSuccessful && response.code() == 200) {
                                 Toast.makeText(this@EventboardActivity, "New board added successfully.", Toast.LENGTH_SHORT).show()
                                 fetchBoards()
                                 return@launch
@@ -153,7 +176,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
     override fun onMenuOptionPopupClick(position: Int) {
         val clickedItem = eventBoardAdapter.taskLists[position]
 
-        val popupMenu = PopupMenu(this,  imgViewPopup).apply {
+        val popupMenu = PopupMenu(this,rvEventBoard.findViewHolderForAdapterPosition(position)!!.itemView.findViewById(R.id.imgViewPopup)).apply {
             inflate(R.menu.eventboard_popup_menu)
             setOnMenuItemClickListener {
                 when(it.itemId) {
@@ -172,9 +195,15 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                                 lifecycleScope.launch {
                                     val response = try {
                                         RetrofitInstance.api.addTask(
+                                            "Bearer " + this@EventboardActivity
+                                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                            intent.getIntExtra("eventID", 0),
+                                            clickedItem.id, //ListID
                                             inflater.inputBoardName.text.toString(),
-                                            clickedItem.id,
-                                            getSharedPreferences("loginCredential", Context.MODE_PRIVATE).getInt("userID", 0))
+                                            "This task is created thru TICaP HUB mobile. Descrition is not set",
+//                                            getSharedPreferences("loginCredential", Context.MODE_PRIVATE).getInt("userID", 0)
+                                        )
                                         //Add user id, created date, etc. Or whatevah
                                     } catch(e: IOException) {
                                         Log.e(tag, e.message.toString())
@@ -183,7 +212,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                                         Log.e(tag, "HttpException, unexpected response")
                                         return@launch
                                     }
-                                    if(response.isSuccessful && response.body()!!.sqlResponse == "201") {
+                                    if(response.isSuccessful && response.code() == 200) {
                                         fetchBoards()
                                         Toast.makeText(this@EventboardActivity, "New task added successfully.", Toast.LENGTH_SHORT).show()
                                         return@launch
@@ -199,6 +228,92 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                         return@setOnMenuItemClickListener true
                     }
 
+                    R.id.menu_rename_task_list -> {
+
+                        //I'm reusing the dialog box that I created for Add New Board, I'm replacing it with with task list
+                        val inflater = this@EventboardActivity.layoutInflater.inflate(R.layout.dialog_add_new_board,null)
+                        inflater.inputBoardName.setText(clickedItem.title)
+                        AlertDialog.Builder(this@EventboardActivity)
+                            .setTitle("Rename Task List")
+                            .setView(inflater)
+                            .setPositiveButton("Submit"){_,_ ->
+
+                                val tag = "RenameTaskListDialog"
+                                lifecycleScope.launch {
+                                    val response = try {
+                                        RetrofitInstance.api.updateList(
+                                            "Bearer " + this@EventboardActivity
+                                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                            clickedItem.id,
+                                            inflater.inputBoardName.text.toString()
+                                        )
+                                    } catch(e: IOException) {
+                                        Log.e(tag, e.message.toString())
+                                        return@launch
+                                    } catch (e: HttpException) {
+                                        Log.e(tag, "HttpException, unexpected response")
+                                        return@launch
+                                    }
+                                    if(response.isSuccessful && response.code() == 200) {
+                                        fetchBoards()
+                                        Toast.makeText(this@EventboardActivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
+                                        return@launch
+                                    } else {
+                                        Toast.makeText(this@EventboardActivity, "Operation Failed with code: " + response.body()!!, Toast.LENGTH_SHORT).show()
+                                        Log.e(tag, "Error on Response")
+                                        return@launch
+                                    }
+                                }
+                            }
+                            .create()
+                            .show()
+                        return@setOnMenuItemClickListener true
+                    }
+
+                    R.id.menu_delete_task_list -> {
+
+                        AlertDialog.Builder(this@EventboardActivity)
+                            .setTitle("Confirm Task List Deletion")
+                            .setMessage("\"" + clickedItem.title + "\"" + " will be deleted permanently.")
+                            .setPositiveButton("Delete"){_,_ ->
+
+                                val tag = "RenameEventDialog"
+
+                                lifecycleScope.launch {
+                                    val response = try {
+                                        RetrofitInstance.api.deleteList(
+                                            "Bearer " + this@EventboardActivity
+                                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                            clickedItem.id
+                                        )
+                                    } catch(e: IOException) {
+                                        Log.e(tag, e.message.toString())
+                                        return@launch
+                                    } catch (e: HttpException) {
+                                        Log.e(tag, "HttpException, unexpected response")
+                                        return@launch
+                                    }
+                                    if(response.isSuccessful && response.code() == 200) {
+                                        fetchBoards()
+                                        Toast.makeText(this@EventboardActivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
+                                        return@launch
+                                    } else {
+                                        Toast.makeText(this@EventboardActivity,"Operation failed with code: " + response.code(), Toast.LENGTH_SHORT).show()
+                                        Log.e(tag, "Error on Response")
+                                        return@launch
+                                    }
+                                }
+                            }
+                            .setNegativeButton("Cancel"){_, _ ->
+                                Toast.makeText(this@EventboardActivity, "Operation cancelled.", Toast.LENGTH_SHORT).show()
+                            }
+                            .create()
+                            .show()
+                        return@setOnMenuItemClickListener true
+                    }
+
                     else -> return@setOnMenuItemClickListener true
                 }
             }
@@ -208,7 +323,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
 
     override fun onNestedItemClick(taskID: Int) {
         val intent = Intent(this, TaskDetailsActivity::class.java).apply {
-            putExtra("id", taskID)
+            putExtra("taskID", taskID)
         }
         resultContract.launch(intent)
     }

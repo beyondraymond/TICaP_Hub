@@ -1,6 +1,6 @@
 package com.cyberace.ticaphub.model
 
-
 data class ResponseClass(
-    val sqlResponse: String
+    val message: String,
+    val event_id: Int
 )

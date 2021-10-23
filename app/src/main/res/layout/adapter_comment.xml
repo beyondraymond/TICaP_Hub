@@ -7,31 +7,30 @@
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraint1"
+        android:id="@+id/constraintIncoming"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginRight="30dp"
         android:layout_marginEnd="30dp"
-        app:layout_constraintBottom_toTopOf="@id/constraint2"
+        android:layout_marginRight="30dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/constraintOutgoing"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        >
+        tools:visibility="visible">
 
         <TextView
             android:id="@+id/txtIncomingDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
             android:layout_marginTop="10dp"
-            android:text="Insert Date Here"
             app:layout_constraintBottom_toTopOf="@id/cardViewIncoming"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-             />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardViewIncoming"
@@ -56,8 +55,8 @@
                     android:id="@+id/imgIncoming"
                     android:layout_width="75dp"
                     android:layout_height="75dp"
-                    android:src="@drawable/ic_baseline_person"
-                    android:contentDescription="Image of Someone" />
+                    android:contentDescription="@string/image_of_other_user"
+                    android:src="@drawable/ic_baseline_person" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -68,22 +67,20 @@
                         android:id="@+id/txtIncomingComment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
                         android:layout_marginStart="5dp"
-                        android:text="TextViewshbcbasjshcbjahc cm cdjjhcbdjhbdjhvbm j jddjhccbdjchbj xj djhbdjhccbdjb cjdhcbjhsadcbdj jhbcjcdhbcjsdhbcdj jdhbsdjhbdjhvbdjvhbd jddhbsjdhvbdjvbdsjsvbdjhbvjsdhbvjsdhbv apple "
+                        android:layout_marginLeft="5dp"
                         android:textColor="@color/secondaryColor"
-                        android:textSize="15sp"
-                         />
+                        android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/txtIncomingAttachment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
                         android:layout_marginStart="5dp"
-                        android:text="TextView"
-                        android:textColor="@color/blue"
-                         />
+                        android:layout_marginLeft="5dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/blue" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -92,31 +89,30 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraint2"
+        android:id="@+id/constraintOutgoing"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="30dp"
         android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/constraint1"
-        >
+        app:layout_constraintTop_toBottomOf="@id/constraintIncoming"
+        tools:visibility="visible">
 
         <TextView
             android:id="@+id/txtOutgoingDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_marginEnd="10dp"
             android:layout_marginTop="10dp"
-            android:text="Insert Date Here"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
             app:layout_constraintBottom_toTopOf="@id/cardViewOutgoing"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-             />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardViewOutgoing"
@@ -131,7 +127,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf ="@id/txtOutgoingDate">
+            app:layout_constraintTop_toBottomOf="@id/txtOutgoingDate">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -142,37 +138,34 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    >
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/txtOutgoingComment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
                         android:layout_marginStart="5dp"
-                        android:text="TextViewshbcbasjshcbjahc cm cdjjhcbdjhbdjhvbm j jddjhccbdjchbj xj djhbdjhccbdjb cjdhcbjhsadcbdj jhbcjcdhbcjsdhbcdj jdhbsdjhbdjhvbdjvhbd jddhbsjdhvbdjvbdsjsvbdjhbvjsdhbvjsdhbv apple "
+                        android:layout_marginLeft="5dp"
                         android:textColor="@color/secondaryColor"
-                        android:textSize="15sp"
-                         />
+                        android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/txtOutgoingAttachment"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
                         android:layout_marginStart="5dp"
-                        android:text="TextView"
-                        android:textColor="@color/blue"
-                         />
+                        android:layout_marginLeft="5dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/blue" />
                 </LinearLayout>
 
                 <ImageView
                     android:id="@+id/imgOutgoing"
                     android:layout_width="75dp"
                     android:layout_height="75dp"
-                    android:src="@drawable/ic_baseline_person"
-                    android:contentDescription="Your Profile Picture" />
+                    android:contentDescription="@string/your_profile_picture"
+                    android:src="@drawable/ic_baseline_person" />
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>

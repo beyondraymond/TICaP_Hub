@@ -1,9 +1,9 @@
 package com.cyberace.ticaphub
 
-import android.app.Activity
-import android.app.AlertDialog
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -18,6 +18,7 @@ class LoginActivity : AppCompatActivity() {
 
     private val tag = "Login Act:"
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -28,11 +29,11 @@ class LoginActivity : AppCompatActivity() {
         val editor = sharedPref.edit()
 
         val userID = sharedPref.getInt("userID", 0)
-        val userFullName = sharedPref.getString("userFullName", null)
+        val userToken = sharedPref.getString("userToken", null)
 
         //val intent = Intent(this, MainActivity::class.java)
 
-        if (userID != 0 && userFullName != null){
+        if (userID != 0 && userToken != null){
             Intent(this, MainActivity::class.java).apply {
                 putExtra("id", userID)
                 startActivity(this)
@@ -56,8 +57,9 @@ class LoginActivity : AppCompatActivity() {
                 }
                 if(response.isSuccessful && response.body() != null) {
 
-                    editor.putInt("userID", response.body()!!.user_id)
-                    editor.putString("userFullName", response.body()!!.full_name)
+                    editor.putInt("userID", response.body()!!.user.id)
+//                    editor.putString("userFullName", response.body()!!.user.first_name)
+                    editor.putString("userToken", response.body()!!.token)
                     editor.apply()
 
                     Intent(this@LoginActivity, MainActivity::class.java).apply {
@@ -72,8 +74,11 @@ class LoginActivity : AppCompatActivity() {
         }
 
         txtForgotPassword.setOnClickListener {
-            val intent2 = Intent(this, ForgotPasswordActivity::class.java)
-            startActivity(intent2)
+            val forgotPasswordIntent = Intent(
+                "android.intent.action.VIEW",
+                Uri.parse("https://www.ticaphub.com/forgot-password")
+            )
+            startActivity(forgotPasswordIntent)
         }
     }
 }

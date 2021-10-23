@@ -13,5 +13,20 @@
     <string name="title_add_list">Add List</string>
     <string name="title_add_task">Add Task</string>
     <string name="title_move_task">Move Task To Another List</string>
-    <string name="title_complete_task">Mark as Complete</string>
+    <string name="title_refresh_task">Refresh Task Details</string>
+    <string name="title_rename_event">Rename</string>
+    <string name="title_delete_event">Delete Event</string>
+    <string name="title_rename_task_list">Rename List</string>
+    <string name="title_delete_task_list">Delete List</string>
+    <string name="activity">Activity</string>
+    <string name="image_of_other_user">Image of Other User</string>
+    <string name="your_profile_picture">Your Profile Picture</string>
+    <string name="img_no_comments_content_description">Icon of conversation when there is an empty comment thread</string>
+    <string name="txt_no_comment_prompt">This task doesn\'t have an activity record. \n Start typing to start the conversation.</string>
+    <string name="img_add_attachment_content_description">Add Attachment</string>
+    <string name="edittext_hint">Add New Activity</string>
+    <string name="btn_send_comment">Send</string>
+    <string name="popup_content_desc">Popup Menu</string>
+    <string name="popup_menu_for_event_list">Popup Menu For Event List</string>
+    <string name="no_image_prompter">No image prompter</string>
 </resources>

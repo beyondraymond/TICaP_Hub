@@ -1,9 +1,12 @@
 package com.cyberace.ticaphub.ui.eventboard
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -11,12 +14,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.cyberace.ticaphub.R
 import com.cyberace.ticaphub.RetrofitInstance
+import kotlinx.android.synthetic.main.activity_events.*
+import kotlinx.android.synthetic.main.adapter_event_board.*
+import kotlinx.android.synthetic.main.adapter_event_list.*
+import kotlinx.android.synthetic.main.dialog_add_new_board.view.*
+import kotlinx.android.synthetic.main.fragment_eventlist.*
+import kotlinx.android.synthetic.main.fragment_eventlist.imageViewEventBoard
+import kotlinx.android.synthetic.main.fragment_eventlist.txtPromptEventboard
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
-import kotlinx.android.synthetic.main.dialog_add_new_board.view.*
-import kotlinx.android.synthetic.main.fragment_eventlist.*
 
 
 class EventlistFragment : Fragment(R.layout.fragment_eventlist),
@@ -52,21 +60,140 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
         val clickedItem = eventListAdapter.events[position]
 
         Intent(activity, EventboardActivity::class.java).apply {
-            putExtra("id", clickedItem.id)
+            putExtra("eventID", clickedItem.id)
             putExtra("event-name", clickedItem.name)
             startActivity(this)
         }
     }
 
+    override fun onMenuOptionPopupClick(position: Int) {
+
+        val clickedItem = eventListAdapter.events[position]
+
+        val popupMenu = PopupMenu(requireContext(), rvEventList.findViewHolderForAdapterPosition(position)!!.itemView.findViewById(R.id.imgEventListPopup)).apply {
+            inflate(R.menu.eventlist_popup_menu)
+            setOnMenuItemClickListener {
+                when(it.itemId) {
+
+                    R.id.menu_rename_event -> {
+
+                        //I'm reusing the dialog box that I created for Add New Board, I'm replacing it with with task list
+                        val inflater = this@EventlistFragment.layoutInflater.inflate(R.layout.dialog_add_new_board,null)
+                        inflater.inputBoardName.setText(clickedItem.name)
+                        AlertDialog.Builder(requireActivity())
+                            .setTitle("Rename Event Board")
+                            .setView(inflater)
+                            .setPositiveButton("Submit"){_,_ ->
+
+                                val tag = "RenameEventDialog"
+
+                                lifecycleScope.launch {
+                                    val response = try {
+                                        RetrofitInstance.api.updateEvent(
+                                            "Bearer " + requireActivity()
+                                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                            clickedItem.id,
+                                            inflater.inputBoardName.text.toString()
+                                        )
+                                    } catch(e: IOException) {
+                                        Log.e(tag, e.message.toString())
+                                        return@launch
+                                    } catch (e: HttpException) {
+                                        Log.e(tag, "HttpException, unexpected response")
+                                        return@launch
+                                    }
+                                    if(response.isSuccessful && response.code() == 200) {
+                                        fetchEvents()
+                                        Toast.makeText(requireContext(), response.body()!!.message, Toast.LENGTH_SHORT).show()
+                                        return@launch
+                                    } else {
+                                        Toast.makeText(requireContext(), "Operation failed with code: " + response.code(), Toast.LENGTH_SHORT).show()
+                                        Log.e(tag, "Error on Response")
+                                        return@launch
+                                    }
+                                }
+                            }
+                            .create()
+                            .show()
+
+                        return@setOnMenuItemClickListener true
+                    }
+
+                    R.id.menu_delete_event -> {
+                        AlertDialog.Builder(requireActivity())
+                            .setTitle("Confirm Event Deletion")
+                            .setMessage("\"" + clickedItem.name + "\"" + " will be deleted permanently.")
+                            .setPositiveButton("Delete"){_,_ ->
+
+                                val tag = "RenameEventDialog"
+
+                                lifecycleScope.launch {
+                                    val response = try {
+                                        RetrofitInstance.api.deleteEvent(
+                                            "Bearer " + requireActivity()
+                                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                            clickedItem.id
+                                        )
+                                    } catch(e: IOException) {
+                                        Log.e(tag, e.message.toString())
+                                        return@launch
+                                    } catch (e: HttpException) {
+                                        Log.e(tag, "HttpException, unexpected response")
+                                        return@launch
+                                    }
+                                    if(response.isSuccessful && response.code() == 200) {
+                                        fetchEvents()
+                                        Toast.makeText(requireContext(), response.body()!!.message, Toast.LENGTH_SHORT).show()
+                                        return@launch
+                                    } else {
+                                        Toast.makeText(requireContext(), "Operation failed with code: " + response.code(), Toast.LENGTH_SHORT).show()
+                                        Log.e(tag, "Error on Response")
+                                        return@launch
+                                    }
+                                }
+                            }
+                            .setNegativeButton("Cancel"){_, _ ->
+                                Toast.makeText(requireContext(), "Operation cancelled.", Toast.LENGTH_SHORT).show()
+                            }
+                            .create()
+                            .show()
+
+
+                        return@setOnMenuItemClickListener true
+                    }
+
+                    else -> return@setOnMenuItemClickListener true
+                }
+            }
+        }
+        popupMenu.show()
+    }
+
+    @SuppressLint("SetTextI18n")
     private fun fetchEvents(){
         viewLifecycleOwner.lifecycleScope.launch {
             val response = try {
-                RetrofitInstance.api.getEvents()
+                RetrofitInstance.api.getEvents(
+                    "Bearer " +
+                    this@EventlistFragment
+                        .requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                        .getString("userToken", "0")
+                )
             } catch (e: IOException) {
-                Log.e(tagName, e.message.toString())
+                rvEventList.visibility = View.GONE
+                txtPromptEventboard.text = "IO Error: Failed to connect to the server"
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, "IO Error:" + e.message.toString())
                 return@launch
             } catch (e: HttpException) {
-                Log.e(tagName, "HttpException, unexpected response")
+                rvEventList.visibility = View.GONE
+                txtPromptEventboard.text = "HTTP Error: Unexpected response from the server"
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, "HTTP Error:" + e.message.toString())
                 return@launch
             }
             if (response.isSuccessful && response.body() != null) {
@@ -81,7 +208,12 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
                     imageViewEventBoard.visibility = View.GONE
                 }
             } else {
-                Log.e(tagName, "Response not successful")
+                val msg= "Response not successful"
+                rvEventList.visibility = View.GONE
+                txtPromptEventboard.text = msg
+                txtPromptEventboard.visibility = View.VISIBLE
+                imageViewEventBoard.visibility = View.VISIBLE
+                Log.e(tagName, msg + "Response Code: " + response.code())
             }
         }
     }
@@ -106,7 +238,13 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
                         val tag = "AddEventDialog"
                         lifecycleScope.launch {
                             val response = try {
-                                RetrofitInstance.api.addEvent(inflater.inputBoardName.text.toString())
+                                RetrofitInstance.api.addEvent(
+                                    "Bearer " +
+                                            this@EventlistFragment
+                                                .requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                                .getString("userToken", "0"),
+                                    inflater.inputBoardName.text.toString()
+                                )
                             } catch(e: IOException) {
                                 Log.e(tag, e.message.toString())
                                 return@launch
@@ -114,7 +252,7 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
                                 Log.e(tag, "HttpException, unexpected response")
                                 return@launch
                             }
-                            if(response.isSuccessful && response.body()!!.sqlResponse == "201") {
+                            if(response.isSuccessful && response.body()!!.message == "Event has been created.") {
                                 Toast.makeText(requireActivity(), "New event added successfully.", Toast.LENGTH_SHORT).show()
                                 fetchEvents()
                                 return@launch

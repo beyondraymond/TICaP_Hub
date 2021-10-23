@@ -5,8 +5,9 @@
     android:id="@+id/constraintLayoutLoginActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:visibility="visible"
-    tools:context=".LoginActivity">
+    android:visibility="gone"
+    tools:context=".LoginActivity"
+    tools:visibility="visible">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"

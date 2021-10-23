@@ -31,7 +31,6 @@ class EventboardAdapter(
                     listener.onMenuOptionPopupClick(adapterPosition)
                 }
             }
-
         }
     }
 
@@ -91,8 +90,8 @@ class EventboardAdapter(
     }
 
     override fun onItemClick(taskID: Int) {
-
         listener.onNestedItemClick(taskID)
+
     }
 
 

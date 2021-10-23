@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -29,25 +30,32 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                tools:ignore="UseCompoundDrawables">
 
                 <TextView
                     android:id="@+id/txtBoardTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginLeft="5dp"
+                    android:layout_marginStart="5dp"
                     android:layout_marginTop="5dp"
-                    android:text="Board Title"
                     android:textColor="@color/list_title"
-                    android:textSize="30sp" />
+                    android:textSize="30sp"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                     />
 
                 <ImageView
                     android:id="@+id/imgViewPopup"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginRight="15dp"
-                    android:src="@drawable/ic_baseline_more_vert_24" />
+                    android:layout_marginEnd="15dp"
+                    android:src="@drawable/ic_baseline_more_vert_24"
+                    android:contentDescription="@string/popup_menu_for_event_list"
+                     />
 
 
             </LinearLayout>
@@ -65,7 +73,8 @@
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="50dp"
                 android:src="@drawable/img_themed_empty_list"
-                android:visibility="gone" />
+                android:visibility="gone"
+                android:contentDescription="@string/no_image_prompter" />
 
             <TextView
                 android:id="@+id/txtPromptEventboardAdapter"

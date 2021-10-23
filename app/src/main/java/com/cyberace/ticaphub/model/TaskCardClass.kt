@@ -8,4 +8,7 @@ data class TaskCardClass(
     val user_id: Int,
     val created_at: String,
     val updated_at: String,
+    val activities: List<ActivityClass>,
+    val task_creator: User,
+    val users: List<User>
 )

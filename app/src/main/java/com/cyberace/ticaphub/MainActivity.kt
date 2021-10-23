@@ -8,8 +8,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 
-const val baseUrl = "http://10.0.2.2/ticap/"
-//const val baseUrl = "https://4787-136-158-10-184.ngrok.io/ticap/"
+//const val baseUrl = "http://10.0.2.2/ticap/"
+const val baseUrl = "https://www.ticaphub.com/api/"
 
 class MainActivity : AppCompatActivity() {
 

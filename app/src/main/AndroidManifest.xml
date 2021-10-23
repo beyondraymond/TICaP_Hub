@@ -14,16 +14,16 @@
         android:theme="@style/Theme.TICaPHub"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ui.taskDetails.UpdateTaskActivity"
+            android:exported="true" />
+        <activity
             android:name=".ui.eventboard.EventboardActivity"
             android:exported="true" />
         <activity
-            android:name=".ForgotPasswordActivity"
-            android:exported="true"
-            android:label="@string/title_forgot_password"></activity>
-        <activity
             android:name=".ui.taskDetails.TaskDetailsActivity"
             android:exported="true"
-            android:label="@string/title_task_details" />
+            android:label="@string/title_task_details"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main" />

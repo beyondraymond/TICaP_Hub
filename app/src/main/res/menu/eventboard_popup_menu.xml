@@ -4,5 +4,13 @@
         android:id="@+id/menu_add_task"
         android:title="@string/title_add_task"
         />
+    <item
+        android:id="@+id/menu_rename_task_list"
+        android:title="@string/title_rename_task_list"
+        />
+    <item
+        android:id="@+id/menu_delete_task_list"
+        android:title="@string/title_delete_task_list"
+        />
 
 </menu>

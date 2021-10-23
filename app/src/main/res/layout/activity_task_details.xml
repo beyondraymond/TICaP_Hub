@@ -25,10 +25,11 @@
             android:id="@+id/txtTaskTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create a Logo for the Seminar"
             android:textColor="@color/white"
             android:textSize="35sp"
             android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="3"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.067"
@@ -51,16 +52,15 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/constraintTaskTitle"
-            app:layout_constraintVertical_bias="0.02">
+            app:layout_constraintVertical_bias="0.02"
+            >
 
             <TextView
                 android:id="@+id/txtTaskDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
                 android:background="@color/white"
                 android:padding="15dp"
-                android:text="Tap to add description hbddjadfvdjfvf bsjhbdjhbfdjhfbfc djhvdjhfbdjfhb hbdjhfbdsj dhbfsjdhfbdsjfb djshsdjhbdsvhbdssjvhbddjvb djfbskdbfdbfsdbfehfbehbfej bfdjhsbfjhdbsjhfbsjhbfjsdhbf"
                 android:textSize="18sp"
                 android:textColor="@color/matte_black"
                 android:ellipsize="end"
@@ -73,7 +73,6 @@
                 android:layout_marginBottom="10dp"
                 android:background="@color/white"
                 android:padding="15dp"
-                android:text="Last Updated"
                 android:textSize="16sp"
                 android:textColor="@color/matte_black"/>
 
@@ -82,14 +81,67 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
-                android:text="Activity"
+                android:layout_marginStart="5dp"
+                android:text="@string/activity"
                 android:textSize="16sp"
-                android:textColor="@color/matte_black"/>
+                android:textColor="@color/matte_black"
+                />
 
-            <androidx.recyclerview.widget.RecyclerView
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/refreshLayoutTaskDetails"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="4"/>
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:visibility="visible">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvActivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/refreshLayoutEmptyList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:visibility="gone">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <ImageView
+                            android:id="@+id/imgNoComment"
+                            android:layout_width="match_parent"
+                            android:layout_height="180dp"
+                            android:layout_margin="10dp"
+                            android:contentDescription="@string/img_no_comments_content_description"
+                            android:src="@drawable/img_themed_conversation" />
+
+                        <TextView
+                            android:id="@+id/txtNoComment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="@string/txt_no_comment_prompt"
+                            android:textColor="@color/secondaryColor"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+
+                </ScrollView>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 
             <TextView
                 android:id="@+id/textView4"
@@ -97,10 +149,55 @@
                 android:layout_height="wrap_content"
                 android:background="@color/white"
                 android:padding="15dp"
-                android:text="Insert Send Comment Here"
                 android:textSize="16sp"
-                android:textColor="@color/matte_black"/>
+                android:textColor="@color/matte_black"
+                android:visibility="gone"/>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageViewUploadFile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingVertical="5dp"
+                    android:src="@drawable/ic_baseline_attach_file_24"
+                    android:contentDescription="@string/img_add_attachment_content_description" />
+
+                <EditText
+                    android:id="@+id/editTxtComment"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="3dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_weight="1"
+                    android:minHeight="48dp"
+                    android:ems="10"
+                    android:gravity="start|top"
+                    android:hint="@string/edittext_hint"
+                    android:textColorHint="#757575"
+                    android:textColor="@color/matte_black"
+                    android:inputType="textAutoCorrect|textCapSentences|textMultiLine"
+                    android:importantForAutofill="no"
+                    />
+
+                <Button
+                    android:id="@+id/btnSendComment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minHeight="49dp"
+                    android:text="@string/btn_send_comment"
+                    />
+            </LinearLayout>
 
         </LinearLayout>
+
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

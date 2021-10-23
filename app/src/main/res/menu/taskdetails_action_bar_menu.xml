@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item
-        android:id="@+id/menu_complete_task"
-        android:title="@string/title_complete_task"
-        />
 
     <item
         android:id="@+id/menu_move_task"
         android:title="@string/title_move_task"
+        />
+
+    <item
+        android:id="@+id/menu_refresh_data"
+        android:title="@string/title_refresh_task"
         />
 
 </menu>
