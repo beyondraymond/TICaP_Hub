@@ -19,9 +19,10 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
-import android.webkit.URLUtil
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,119 +34,139 @@ import kotlinx.android.synthetic.main.dialog_add_new_board.view.*
 import kotlinx.android.synthetic.main.dialog_choose_task_list.*
 import kotlinx.android.synthetic.main.dialog_choose_task_list.view.*
 import kotlinx.android.synthetic.main.fragment_home.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.*
 import java.net.URLConnection
-import android.content.Intent
-
-
-
+import android.provider.OpenableColumns
+import android.database.Cursor
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import android.content.ContentResolver
+import okhttp3.MultipartBody
 
 
 class TaskDetailsActivity : AppCompatActivity(),
-    TaskDetailsAdapter.OnItemClickListener{
+    TaskDetailsAdapter.OnItemClickListener, UploadRequestBody.UploadCallback {
 
     private val commentsAdapter = TaskDetailsAdapter(this, this)
-//    private val sharedPrefUserID = this@TaskDetailsActivity.getSharedPreferences("loginCredential", Context.MODE_PRIVATE)!!.getInt("userID", 0)
     private lateinit var fetchedTask: TaskCardClass
+    private var requestBody:UploadRequestBody? = null
+
+    @SuppressLint("SetTextI18n")
+    private val resultContract = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+        ActivityResultCallback {
+
+            //Get the File Name of the selected file
+            val uriString = it.toString()
+            val myFile = File(uriString)
+            var displayName: String? = null
+
+            if (uriString.startsWith("content://")) {
+                var cursor: Cursor? = null
+                try {
+                    cursor = this.contentResolver.query(it, null, null, null, null)
+                    if (cursor != null && cursor.moveToFirst()) {
+                        displayName =
+                            cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                    }
+                } finally {
+                    cursor!!.close()
+                }
+            } else if (uriString.startsWith("file://")) {
+                displayName = myFile.name
+            }
+            Log.e("SELECTED FILE", displayName!!)
+            linearLayoutFileUploaded.visibility = View.VISIBLE
+            txtViewFileName.text = displayName
+
+            //Get the content type of the selected File
+            val contentResolver: ContentResolver = this.contentResolver
+            val type = contentResolver.getType(it)!!
+
+            if (Build.VERSION.SDK_INT >= 19){
+                val parcelFileDescriptor =
+                    contentResolver.openFileDescriptor(it, "r", null) ?: return@ActivityResultCallback
+
+                val inputStream = FileInputStream(parcelFileDescriptor.fileDescriptor)
+                val file = File(cacheDir, displayName)
+                val outputStream = FileOutputStream(file)
+                inputStream.copyTo(outputStream)
+
+                progressBar1.visibility = View.VISIBLE
+                progressBar1.progress = 0
+                Log.e("CONTENT-TYPE", type)
+                requestBody = UploadRequestBody(file, type, this)
+
+            }else{
+                txtViewFileName.text = "File uploading is unavailable in the current Android Version"
+                Toast.makeText(this@TaskDetailsActivity, "File uploading is unavailable in the current Android Version", Toast.LENGTH_LONG).show()
+            }
+
+        }
+    )
 
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task_details)
 
-        //Add a logic na kapag nai-tap yung task desccription, makikita yung full view ng task and kapag officer yung user, pwede niya i-edit
-
         fetchTask()
         rvActivity.adapter = commentsAdapter
         rvActivity.layoutManager = LinearLayoutManager(this)
-
-
-
-//        fetchComments()
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         refreshLayoutTaskDetails.setOnRefreshListener {
             refreshLayoutTaskDetails.isRefreshing = true
             fetchTask()
-//            fetchComments()
             refreshLayoutTaskDetails.isRefreshing = false
         }
         refreshLayoutEmptyList.setOnRefreshListener {
             refreshLayoutEmptyList.isRefreshing = true
             fetchTask()
-//            fetchComments()
             refreshLayoutEmptyList.isRefreshing = false
         }
 
         btnSendComment.setOnClickListener {
-            val tag = "Send Comment"
             lifecycleScope.launch {
+                val tagName = "SendComment1-getEvent"
                 val response = try {
-                    RetrofitInstance.api.addActivity(
+                    RetrofitInstance.api.getEventID(
                         "Bearer " + this@TaskDetailsActivity
                             .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
                             .getString("userToken", "0"),
-                        intent.getIntExtra("taskID", 0),
-                        editTxtComment.text.toString()
-                    )
-                } catch(e: IOException) {
-                    Toast.makeText(this@TaskDetailsActivity, "Operation Failed: " + e.message, Toast.LENGTH_SHORT).show()
-                    Log.e(tag, e.message.toString())
+                        fetchedTask.id)
+                } catch (e: IOException) {
+                    Log.e(tagName, e.message.toString())
                     return@launch
                 } catch (e: HttpException) {
-                    Toast.makeText(this@TaskDetailsActivity, "Operation Failed: HttpException, unexpected response", Toast.LENGTH_SHORT).show()
-                    Log.e(tag, "HttpException, unexpected response")
+                    Log.e(tagName, "HttpException, unexpected response")
                     return@launch
                 }
-                if(response.isSuccessful && response.code() == 200) {
-
-                    editTxtComment.text.clear()
-
-                    if(editTxtComment.requestFocus()){
-                        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                        inputMethodManager.hideSoftInputFromWindow(editTxtComment.applicationWindowToken, 0)
-                    }
-
-//                    fetchComments()
-                    fetchTask()
-
-                    commentsAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
-                        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                            (rvActivity.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(positionStart, 0)
-                        }
-                    })
-
+                if (response.isSuccessful && response.body() != null) {
+                    sendComment(response.body()!!.event_id)
                     return@launch
                 } else {
-                    Toast.makeText(this@TaskDetailsActivity, "Operation Failed", Toast.LENGTH_SHORT).show()
-                    Log.e(tag, "Error on Response: " + response.code())
-                    return@launch
+                    Log.e(tagName, "Response not successful with code " + response.code())
                 }
             }
 
         }
 
-//        btnDownload.setOnClickListener {
-//            val urlRequest = baseUrl+txtFileName.text.toString()
-//            val request = DownloadManager.Request(Uri.parse(urlRequest))
-//            val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-//            //val title = URLUtil.guessFileName(urlRequest, null, null)
-//            //val cookie = CookieManager.getInstance().getCookie(urlRequest)
-//
-//            request.setTitle(txtFileName.text.toString())
-//            request.setDescription("Downloading File Attachments.")
-//            //request.addRequestHeader("cookie", cookie)
-//            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-//            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, txtFileName.text.toString())
-//            request.setAllowedOverMetered(true)
-//            downloadManager.enqueue(request)
-//
-//            Toast.makeText(this, "Downloading Attachment", Toast.LENGTH_SHORT).show()
-//
-//        }
+        imgViewUploadFile.setOnClickListener {
+            browseDocuments()
+         }
 
+        btnCancelUpload.setOnClickListener {
+            requestBody = null
+            txtViewFileName.text = ""
+            linearLayoutFileUploaded.visibility = View.GONE
+            progressBar1.visibility = View.GONE
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -253,37 +274,14 @@ class TaskDetailsActivity : AppCompatActivity(),
                     editTxtComment.hint = "Comment Disabled: \n You're not a member of this task"
                     btnSendComment.isEnabled = false
                     editTxtComment.isEnabled = false
-                    imageViewUploadFile.isEnabled = false
+                    imgViewUploadFile.isEnabled = false
                 }
-
+                return@launch
             } else {
                 txtTaskTitle.text = "Response not successful"
                 Log.e("Retrofit-TaskDetails", response.errorBody().toString())
             }
         }
-
-        //The code below should resize the task title padding depending sa num of lines ng task title kaso medyo hindi ko siya bet rn
-//        val density = this.resources.displayMetrics.density
-//        txtTaskTitle.post {
-//            Log.d("LineCount", txtTaskTitle.lineCount.toString())
-//            if (txtTaskTitle.lineCount == 3) {
-//                Log.d("LineDP", (50 * density + 0.5f).toInt().toString())
-//                constraintTaskTitle.setPadding(
-//                    (10 * density + 0.5f).toInt(),
-//                    (50 * density + 0.5f).toInt(),
-//                    (10 * density + 0.5f).toInt(),
-//                    0
-//                )
-//            } else {
-//                Log.d("LineDP", (75 * density + 0.5f).toInt().toString())
-//                constraintTaskTitle.setPadding(
-//                    (10 * density + 0.5f).toInt(),
-//                    (75 * density + 0.5f).toInt(),
-//                    (10 * density + 0.5f).toInt(),
-//                    0
-//                )
-//            }
-//        }
     }
 
     private fun fetchBoards(eventID: Int){
@@ -357,50 +355,69 @@ class TaskDetailsActivity : AppCompatActivity(),
                 Toast.makeText(this@TaskDetailsActivity, "Operation Failed", Toast.LENGTH_SHORT).show()
                 Log.e(tagName, "Response not successful " + response.code() )
                 return@launch
-                //Implement Refresh VIEW kapag nag back button ka sa swis
             }
         }
     }
 
-//    @SuppressLint("SetTextI18n")
-//    private fun fetchComments(){
-//        val tagName = "FetchCommentsFunc"
-//        lifecycleScope.launch {
-//            val response = try {
-//                RetrofitInstance.api.getActivities(intent.getIntExtra("id", 0))
-//            } catch (e: IOException) {
-//                refreshLayoutTaskDetails.visibility = View.GONE
-//                refreshLayoutEmptyList.visibility = View.VISIBLE
-//                txtNoComment.text = "IO Error: Failed to connect to the server"
-//                Log.e(tagName, "IO Error:" + e.message.toString())
-//                return@launch
-//            } catch (e: HttpException) {
-//                refreshLayoutTaskDetails.visibility = View.GONE
-//                refreshLayoutEmptyList.visibility = View.VISIBLE
-//                txtNoComment.text = "HTTP Error: Failed to connect to the server"
-//                Log.e(tagName, "HTTP Error:" + e.message.toString())
-//                return@launch
-//            }
-//            if (response.isSuccessful && response.body() != null) {
-//                if (response.body()!!.isEmpty()){
-//                    refreshLayoutTaskDetails.visibility = View.GONE
-//                    refreshLayoutEmptyList.visibility = View.VISIBLE
-//
-//                }else{
-//                    refreshLayoutEmptyList.visibility =  View.GONE
-//                    refreshLayoutTaskDetails.visibility = View.VISIBLE
-//                    commentsAdapter.comments = response.body()!!
-//                    rvActivity.scrollToPosition(commentsAdapter.comments.size-1)
-//                }
-//            } else {
-//                val msg = "Response not successful"
-//                refreshLayoutTaskDetails.visibility = View.GONE
-//                refreshLayoutEmptyList.visibility = View.VISIBLE
-//                txtNoComment.text = msg
-//                Log.e(tagName, msg)
-//            }
-//        }
-//    }
+    private fun sendComment(eventID: Int){
+        val part: MultipartBody.Part? = if(requestBody != null &&
+            txtViewFileName.text != "File uploading is unavailable in the current Android Version" &&
+            txtViewFileName.text != ""){
+            MultipartBody.Part.createFormData("files[0]", txtViewFileName.text.toString(), requestBody!!)
+        }else{
+            null
+        }
+
+        val tag = "Send Comment"
+        lifecycleScope.launch {
+            val response = try {
+                RetrofitInstance.api.addActivity(
+                    "Bearer " + this@TaskDetailsActivity
+                        .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                        .getString("userToken", "0"),
+                    eventID, fetchedTask.list_id,
+                    intent.getIntExtra("taskID", 0),
+                    editTxtComment.text.toString().toRequestBody("text/plain".toMediaTypeOrNull()),
+                     part
+                )
+            } catch(e: IOException) {
+                Toast.makeText(this@TaskDetailsActivity, "Operation Failed: " + e.message, Toast.LENGTH_SHORT).show()
+                Log.e(tag, e.message.toString())
+                return@launch
+            } catch (e: HttpException) {
+                Toast.makeText(this@TaskDetailsActivity, "Operation Failed: HttpException, unexpected response", Toast.LENGTH_SHORT).show()
+                Log.e(tag, "HttpException, unexpected response")
+                return@launch
+            }
+            if(response.isSuccessful && response.code() == 200) {
+
+                progressBar1.progress = 100
+                linearLayoutFileUploaded.visibility = View.GONE
+                requestBody = null
+                progressBar1.visibility = View.GONE
+
+                editTxtComment.text.clear()
+
+                if(editTxtComment.requestFocus()){
+                    val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    inputMethodManager.hideSoftInputFromWindow(editTxtComment.applicationWindowToken, 0)
+                }
+                fetchTask()
+
+                commentsAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+                    override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                        (rvActivity.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(positionStart, 0)
+                    }
+                })
+
+                return@launch
+            } else {
+                Toast.makeText(this@TaskDetailsActivity, "Operation Failed", Toast.LENGTH_SHORT).show()
+                Log.e(tag, "Error on Response: " + response.code())
+                return@launch
+            }
+        }
+    }
 
     private fun isMemberOrCreator(selectedTask: TaskCardClass): Boolean{
         val userID = this@TaskDetailsActivity
@@ -424,39 +441,52 @@ class TaskDetailsActivity : AppCompatActivity(),
     }
 
     override fun onFileClick(position: Int) {
-        val downloadBaseUrl = "https://ticaphub.com/event-files/"
+        val downloadBaseUrl = "https://www.ticaphub.com/api/download/"
         val clickedItem = fetchedTask.activities[position].files[fetchedTask.activities[position].files.lastIndex]
         val urlRequest = downloadBaseUrl + clickedItem.path
 
-        val viewIntent = Intent(
-            "android.intent.action.VIEW",
-            Uri.parse(urlRequest)
-        )
-        startActivity(viewIntent)
+        val request = DownloadManager.Request(Uri.parse(urlRequest))
+        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val cookie = CookieManager.getInstance().getCookie(urlRequest)
 
-//        val request = DownloadManager.Request(Uri.parse(urlRequest))
-//        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-//        val title = URLUtil.guessFileName(urlRequest, null, null)
-//        val cookie = CookieManager.getInstance().getCookie(urlRequest)
-//
-//        Log.e("URL", urlRequest)
-//        request.setTitle(title)
-//        request.setDescription("Downloading File Attachments.")
-//        request.addRequestHeader("Authorization", "Token " + this@TaskDetailsActivity
-//            .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
-//            .getString("userToken", "0"))
-//        request.addRequestHeader("cookie", cookie)
-//        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-//        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, clickedItem.name)
-//        request.setMimeType(getMimeFromFileName(urlRequest))
-//        downloadManager.enqueue(request)
-//
-//        Log.e("MIME TYPE", getMimeFromFileName(urlRequest))
-//
-//        Toast.makeText(this, "Downloading Attachment", Toast.LENGTH_SHORT).show()
+        request.setTitle(clickedItem.name)
+        request.setDescription("Downloading File Attachments.")
+        request.addRequestHeader("Authorization", "Bearer " + this@TaskDetailsActivity
+            .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+            .getString("userToken", "0"))
+        request.addRequestHeader("cookie", cookie)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, clickedItem.name)
+        request.setMimeType(getMimeFromURLRequest(urlRequest))
+        downloadManager.enqueue(request)
+
+        Toast.makeText(this, "Downloading Attachment", Toast.LENGTH_SHORT).show()
     }
 
-//    private fun getMimeFromFileName(url: String): String {
-//        return URLConnection.guessContentTypeFromName(url)
-//    }
+    private fun getMimeFromURLRequest(url: String): String {
+        return URLConnection.guessContentTypeFromName(url)
+    }
+
+    private fun browseDocuments() {
+//        val mimeTypes = arrayOf(
+//            "application/msword",
+//            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  // .doc & .docx
+//            "application/vnd.ms-powerpoint",
+//            "application/vnd.openxmlformats-officedocument.presentationml.presentation",  // .ppt & .pptx
+//            "application/vnd.ms-excel",
+//            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  // .xls & .xlsx
+//            "text/plain",
+//            "application/pdf",
+//            "application/zip",
+//        )
+        val mimeTypes = arrayOf(
+            "*/*"
+        )
+
+        resultContract.launch(mimeTypes)
+    }
+
+    override fun onProgressUpdate(percentage: Int) {
+        progressBar1.progress = percentage
+    }
 }

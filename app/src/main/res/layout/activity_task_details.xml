@@ -104,6 +104,7 @@
 
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+
             <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
                 android:id="@+id/refreshLayoutEmptyList"
                 android:layout_width="match_parent"
@@ -142,17 +143,44 @@
                 </ScrollView>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+            <ProgressBar
+                android:id="@+id/progressBar1"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
-            <TextView
-                android:id="@+id/textView4"
+            <LinearLayout
+                android:id="@+id/linearLayoutFileUploaded"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/white"
-                android:padding="15dp"
-                android:textSize="16sp"
-                android:textColor="@color/matte_black"
-                android:visibility="gone"/>
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
 
+                <TextView
+                    android:id="@+id/txtViewFileName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="15dp"
+                    android:textColor="@color/matte_black"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:id="@+id/btnCancelUpload"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/img_add_attachment_content_description"
+                    android:minWidth="30dp"
+                    android:src="@drawable/ic_baseline_cancel_24" />
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -161,7 +189,7 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/imageViewUploadFile"
+                    android:id="@+id/imgViewUploadFile"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:paddingVertical="5dp"
@@ -175,7 +203,7 @@
                     android:layout_marginLeft="3dp"
                     android:layout_marginStart="3dp"
                     android:layout_weight="1"
-                    android:minHeight="48dp"
+                    android:minHeight="49dp"
                     android:ems="10"
                     android:gravity="start|top"
                     android:hint="@string/edittext_hint"

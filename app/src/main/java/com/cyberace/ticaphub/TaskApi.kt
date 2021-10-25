@@ -210,13 +210,15 @@ interface TaskApi {
 //    suspend fun getActivities(@Query(value = "taskID") taskID: Int): Response<List<ActivityClass>>
 
     //TODO ASAP: ONLY MEMBERS CAN COMMENT DAPAT
-    @FormUrlEncoded
-    @POST("events/0/lists/0/tasks/{taskID}")
+    @Multipart
+    @POST("events/{eventID}/lists/{listID}/tasks/{taskID}")
     suspend fun addActivity(
         @Header("Authorization") authHeader: String,
+        @Path("eventID") eventID: Int,
+        @Path("listID") listID: Int,
         @Path("taskID") taskID: Int,
-        @Field("description") description: String,
-//        @Field("user_id") userID: Int,
+        @Part("description") description: RequestBody,
+        @Part file: MultipartBody.Part?
     ): Response<ActivityClass>
 
 }
