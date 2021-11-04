@@ -7,6 +7,7 @@ data class User(
     val last_name: String,
     val email: String,
     val email_verified: Int,
+    val profile_picture: String,
     val created_at: String,
     val updated_at: String,
     val ticap_id: Int,

@@ -12,16 +12,6 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:gravity="center"
-            android:textColor="@color/primaryColor"
-            android:textSize="30sp"
-            android:text="Update Task Details" />
-
-        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
@@ -56,8 +46,15 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:ems="10"
-            android:inputType="textEmailAddress"
-            android:minHeight="48dp" />
+            android:minHeight="48dp"
+            android:gravity="start|top"
+            android:hint="@string/edittext_hint"
+            android:textColorHint="#757575"
+            android:textColor="@color/matte_black"
+            android:lines="3"
+            android:maxLines="3"
+            android:inputType="textAutoCorrect|textCapSentences|textMultiLine"
+            android:importantForAutofill="no"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -68,6 +65,57 @@
             android:textColor="@color/secondaryColor"
             android:textSize="20sp"
             android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:orientation="horizontal">
+
+            <AutoCompleteTextView
+                android:id="@+id/autoCompleteTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:completionThreshold="1"
+                 />
+
+            <Button
+                android:id="@+id/btnAddMember"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Add" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMembers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="20dp" />
+
+        <TextView
+            android:id="@+id/txtErrorMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:textColor="@color/red" />
+
+        <Button
+            android:id="@+id/btnUpdateTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:background="@drawable/loginbtn_bg"
+            android:minHeight="49dp"
+            android:text="@string/title_update_task_details"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            app:backgroundTint="@color/material_on_surface_disabled"
+            app:backgroundTintMode="screen" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

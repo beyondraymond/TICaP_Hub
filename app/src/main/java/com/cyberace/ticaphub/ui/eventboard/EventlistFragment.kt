@@ -12,8 +12,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.cyberace.ticaphub.LoginActivity
 import com.cyberace.ticaphub.R
 import com.cyberace.ticaphub.RetrofitInstance
+import com.google.gson.JsonSyntaxException
 import kotlinx.android.synthetic.main.activity_events.*
 import kotlinx.android.synthetic.main.adapter_event_board.*
 import kotlinx.android.synthetic.main.adapter_event_list.*
@@ -32,6 +34,7 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
 
     private val eventListAdapter = EventListAdapter(this)
     private val tagName = "E-List Fragment"
+    private var isRole = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,15 +43,11 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
         rvEventList.adapter = eventListAdapter
         rvEventList.layoutManager = LinearLayoutManager(activity)
 
-
-        //Add some logic para i-restrict yung access kapag hindi naman siya officer
-
-        fetchEvents()
+        //Checking Role First before fetching the task
+        checkRole()
 
         refreshLayoutEventList.setOnRefreshListener {
-            refreshLayoutEventList.isRefreshing = true
-            fetchEvents()
-            refreshLayoutEventList.isRefreshing = false
+            checkRole()
             //Run tests kung pano siya magreact kapag empty yung task lists/task board
 
         }
@@ -171,15 +170,15 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
         popupMenu.show()
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun fetchEvents(){
+    private fun checkRole(){
+        refreshLayoutEventList.isRefreshing = true
         viewLifecycleOwner.lifecycleScope.launch {
             val response = try {
-                RetrofitInstance.api.getEvents(
+                RetrofitInstance.api.getAssignedTasks(
                     "Bearer " +
-                    this@EventlistFragment
-                        .requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
-                        .getString("userToken", "0")
+                            this@EventlistFragment
+                                .requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                .getString("userToken", "0")
                 )
             } catch (e: IOException) {
                 rvEventList.visibility = View.GONE
@@ -195,27 +194,96 @@ class EventlistFragment : Fragment(R.layout.fragment_eventlist),
                 imageViewEventBoard.visibility = View.VISIBLE
                 Log.e(tagName, "HTTP Error:" + e.message.toString())
                 return@launch
+            } catch (e: JsonSyntaxException) {
+                Toast.makeText(requireActivity(), "Token Expired. Login Again.", Toast.LENGTH_LONG).show()
+                val sharedPref = this@EventlistFragment.requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                val editor = sharedPref.edit()
+                editor.clear()
+                editor.apply()
+
+                Intent(requireActivity(), LoginActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(this)
+                }
+                return@launch
             }
             if (response.isSuccessful && response.body() != null) {
-                if (response.body()!!.isEmpty()){
-                    rvEventList.visibility = View.GONE
-                    txtPromptEventboard.visibility = View.VISIBLE
-                    imageViewEventBoard.visibility = View.VISIBLE
-                }else{
-                    eventListAdapter.events = response.body()!!
-                    rvEventList.visibility = View.VISIBLE
-                    txtPromptEventboard.visibility = View.GONE
-                    imageViewEventBoard.visibility = View.GONE
+                response.body()!!.roles.forEach {
+                    if(it.id in 1..3){
+                        isRole = true
+                        fetchEvents()
+                    }
                 }
+                fetchEvents()
             } else {
                 val msg= "Response not successful"
-                rvEventList.visibility = View.GONE
-                txtPromptEventboard.text = msg
-                txtPromptEventboard.visibility = View.VISIBLE
-                imageViewEventBoard.visibility = View.VISIBLE
-                Log.e(tagName, msg + "Response Code: " + response.code())
+                rvHome.visibility = View.GONE
+                txtPromptHome.text = msg
+                txtPromptHome.visibility = View.VISIBLE
+                imageViewHome.visibility = View.VISIBLE
+                Log.e(tagName, msg)
             }
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun fetchEvents(){
+        if (isRole){
+            viewLifecycleOwner.lifecycleScope.launch {
+                val response = try {
+                    RetrofitInstance.api.getEvents(
+                        "Bearer " +
+                                this@EventlistFragment
+                                    .requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                    .getString("userToken", "0")
+                    )
+                } catch (e: IOException) {
+                    refreshLayoutEventList.isRefreshing = false
+                    rvEventList.visibility = View.GONE
+                    txtPromptEventboard.text = "IO Error: Failed to connect to the server"
+                    txtPromptEventboard.visibility = View.VISIBLE
+                    imageViewEventBoard.visibility = View.VISIBLE
+                    Log.e(tagName, "IO Error:" + e.message.toString())
+                    return@launch
+                } catch (e: HttpException) {
+                    refreshLayoutEventList.isRefreshing = false
+                    rvEventList.visibility = View.GONE
+                    txtPromptEventboard.text = "HTTP Error: Unexpected response from the server"
+                    txtPromptEventboard.visibility = View.VISIBLE
+                    imageViewEventBoard.visibility = View.VISIBLE
+                    Log.e(tagName, "HTTP Error:" + e.message.toString())
+                    return@launch
+                }
+                if (response.isSuccessful && response.body() != null) {
+                    refreshLayoutEventList.isRefreshing = false
+                    if (response.body()!!.isEmpty()){
+                        rvEventList.visibility = View.GONE
+                        txtPromptEventboard.visibility = View.VISIBLE
+                        imageViewEventBoard.visibility = View.VISIBLE
+                    }else{
+                        eventListAdapter.events = response.body()!!
+                        rvEventList.visibility = View.VISIBLE
+                        txtPromptEventboard.visibility = View.GONE
+                        imageViewEventBoard.visibility = View.GONE
+                    }
+                    return@launch
+                } else {
+                    refreshLayoutEventList.isRefreshing = false
+                    val msg= "Response not successful"
+                    rvEventList.visibility = View.GONE
+                    txtPromptEventboard.text = msg
+                    txtPromptEventboard.visibility = View.VISIBLE
+                    imageViewEventBoard.visibility = View.VISIBLE
+                    Log.e(tagName, msg + "Response Code: " + response.code())
+                }
+            }
+        }else{
+            refreshLayoutEventList.isRefreshing = false
+            rvEventList.visibility = View.GONE
+            txtPromptEventboard.visibility = View.VISIBLE
+            imageViewEventBoard.visibility = View.VISIBLE
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

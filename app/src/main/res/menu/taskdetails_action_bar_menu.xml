@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-
     <item
         android:id="@+id/menu_move_task"
         android:title="@string/title_move_task"
@@ -12,4 +11,13 @@
         android:title="@string/title_refresh_task"
         />
 
+    <item
+        android:id="@+id/menu_update_task"
+        android:title="@string/title_update_task_details"
+        />
+
+    <item
+        android:id="@+id/menu_delete_task"
+        android:title="@string/title_delete_task"
+        />
 </menu>

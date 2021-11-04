@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +29,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
     private val taskAdapter = HomeAdapter(this)
     private val tagName = "Home Fragment"
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
@@ -35,13 +37,10 @@ class HomeFragment : Fragment(R.layout.fragment_home),
         rvHome.adapter = taskAdapter
         rvHome.layoutManager = LinearLayoutManager(activity)
 
-        //ADD LOGIC TO ONLY GET TASKS FOR THE SPECIFIC USER USING USER ID
         fetchTasks()
 
         refreshLayoutHome.setOnRefreshListener {
-            refreshLayoutHome.isRefreshing = true
             fetchTasks()
-            refreshLayoutHome.isRefreshing = false
         }
 
     }
@@ -57,6 +56,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
 
     @SuppressLint("SetTextI18n")
     private fun fetchTasks(){
+        refreshLayoutHome.isRefreshing = true
         viewLifecycleOwner.lifecycleScope.launch {
             val response = try {
                 RetrofitInstance.api.getAssignedTasks(
@@ -93,6 +93,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
                 return@launch
             }
             if (response.isSuccessful && response.body() != null) {
+                refreshLayoutHome.isRefreshing = false
                 if (response.body()!!.tasks.isEmpty()){
                     rvHome.visibility = View.GONE
                     txtPromptHome.visibility = View.VISIBLE
@@ -104,6 +105,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
                     taskAdapter.todos = response.body()!!.tasks
                 }
             } else {
+                refreshLayoutHome.isRefreshing = false
                 val msg= "Response not successful"
                 rvHome.visibility = View.GONE
                 txtPromptHome.text = msg
@@ -114,5 +116,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
         }
     }
 
-
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+    }
 }

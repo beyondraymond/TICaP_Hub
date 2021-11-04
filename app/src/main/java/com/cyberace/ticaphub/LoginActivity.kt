@@ -31,13 +31,12 @@ class LoginActivity : AppCompatActivity() {
         val userID = sharedPref.getInt("userID", 0)
         val userToken = sharedPref.getString("userToken", null)
 
-        //val intent = Intent(this, MainActivity::class.java)
-
         if (userID != 0 && userToken != null){
             Intent(this, MainActivity::class.java).apply {
                 putExtra("id", userID)
                 startActivity(this)
             }
+            finish()
         }else{
             constraintLayoutLoginActivity.visibility = View.VISIBLE
         }
@@ -58,7 +57,6 @@ class LoginActivity : AppCompatActivity() {
                 if(response.isSuccessful && response.body() != null) {
 
                     editor.putInt("userID", response.body()!!.user.id)
-//                    editor.putString("userFullName", response.body()!!.user.first_name)
                     editor.putString("userToken", response.body()!!.token)
                     editor.apply()
 
@@ -66,6 +64,7 @@ class LoginActivity : AppCompatActivity() {
                         putExtra("id", userID)
                         startActivity(this)
                     }
+                    finish()
                 } else {
                     txtErrorMessage.text = "Your email or password is incorrect."
                     return@launch

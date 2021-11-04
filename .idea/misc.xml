@@ -35,6 +35,7 @@
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adapter_event_directory.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adapter_event_list.xml" value="0.264" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adapter_home_card.xml" value="0.264" />
+        <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adapter_member.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adapter_task_list.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/adaptor_home_card.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/layout/dialog_add_new_board.xml" value="0.1" />
@@ -49,7 +50,7 @@
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/menu/eventboard_popup_menu.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/menu/eventlist_popup_menu.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/menu/popup_menu.xml" value="0.25416666666666665" />
-        <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/menu/taskdetails_action_bar_menu.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/menu/taskdetails_action_bar_menu.xml" value="0.264" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.2703125" />
         <entry key="..\:/Users/Raymond/AndroidStudioProjects/TICaPHub/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.2703125" />
       </map>

@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -15,7 +15,6 @@ import com.cyberace.ticaphub.R
 import com.cyberace.ticaphub.model.ActivityClass
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.adapter_comment.view.*
-import kotlinx.android.synthetic.main.adapter_event_list.view.*
 import java.text.SimpleDateFormat
 
 class TaskDetailsAdapter(
@@ -28,8 +27,8 @@ class TaskDetailsAdapter(
     inner class TaskDetailsViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
 
         //Add TextView of File Names Here
-        val txtIncomingAttachment = itemView.txtIncomingAttachment
-        val txtOutgoingAttachment = itemView.txtOutgoingAttachment
+        val txtIncomingAttachment: TextView = itemView.txtIncomingAttachment
+        val txtOutgoingAttachment: TextView = itemView.txtOutgoingAttachment
 
         init {
             txtIncomingAttachment.setOnClickListener {
@@ -46,7 +45,6 @@ class TaskDetailsAdapter(
     }
 
     interface OnItemClickListener{
-        fun getUserProfilePic(userID: Int): String
         fun onFileClick(position: Int)
     }
 
@@ -89,10 +87,6 @@ class TaskDetailsAdapter(
         val dateOutputFormat = SimpleDateFormat("MM/dd/yyyy hh:mm")
 
 
-        //Add a logic to get profile image
-            //Add an interface function to get the image using the user id?
-            //Use that interface function to display the image here
-
         //Use the shared preference to identify if the user id is the same as the user logged
         holder.itemView.apply {
 
@@ -108,7 +102,14 @@ class TaskDetailsAdapter(
                 constraintOutgoing.visibility = View.VISIBLE
                 txtOutgoingDate.text = dateOutputFormat.format(commentDate!!)
                 txtOutgoingComment.text = comments[position].description
-                //Picasso.get().load(getUserProfilePic(comments[position].user_id)).into(imgOutgoing)
+                txtOutgoingName.text = comments[position].user.first_name + " " + comments[position].user.last_name
+
+                if(comments[position].user.profile_picture == "profiles/default-img.png"){
+                    Picasso.get().load("https://ticaphub.com/assets/default-img.png").into(imgOutgoing)
+                }else{
+                    Picasso.get().load("https://ticaphub.com/storage/"+comments[position].user.profile_picture).into(imgOutgoing)
+                }
+
                 if(comments[position].files.isEmpty()){
                     txtOutgoingAttachment.visibility = View.GONE
                 }else{
@@ -122,7 +123,14 @@ class TaskDetailsAdapter(
                 constraintIncoming.visibility = View.VISIBLE
                 txtIncomingDate.text = dateOutputFormat.format(commentDate!!)
                 txtIncomingComment.text = comments[position].description
-                //Picasso.get().load(listener.getUserProfilePic(comments[position].user_id)).into(imgOutgoing)
+                txtIncomingName.text = comments[position].user.first_name + " " + comments[position].user.last_name
+
+                if(comments[position].user.profile_picture == "profiles/default-img.png"){
+                    Picasso.get().load("https://ticaphub.com/assets/default-img.png").into(imgIncoming)
+                }else{
+                    Picasso.get().load("https://ticaphub.com/storage/"+comments[position].user.profile_picture).into(imgIncoming)
+                }
+
                 if(comments[position].files.isEmpty()){
                     txtIncomingAttachment.visibility = View.GONE
                 }else{

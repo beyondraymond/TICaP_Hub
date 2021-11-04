@@ -1,4 +1,4 @@
-package com.cyberace.ticaphub.ui.taskDetails
+package com.cyberace.ticaphub
 
 import android.os.Handler
 import android.os.Looper

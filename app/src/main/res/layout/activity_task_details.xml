@@ -209,6 +209,7 @@
                     android:hint="@string/edittext_hint"
                     android:textColorHint="#757575"
                     android:textColor="@color/matte_black"
+                    android:maxLines="3"
                     android:inputType="textAutoCorrect|textCapSentences|textMultiLine"
                     android:importantForAutofill="no"
                     />

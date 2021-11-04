@@ -72,48 +72,6 @@ class EventListAdapter(
     override fun onBindViewHolder(holder: EventListViewHolder, position: Int) {
         holder.itemView.apply {
             txtEventTitle.text = events[position].name
-//            val popupMenu = PopupMenu(context, imgEventListPopup)
-//            popupMenu.inflate(R.menu.eventlist_popup_menu)
-//            popupMenu.setOnMenuItemClickListener {
-//                when(it.itemId) {
-//
-//                    R.id.menu_rename_event -> {
-//                        listener.onMenuOptionPopupClick(events[position].id)
-//                        return@setOnMenuItemClickListener true
-//                    }
-//
-//                    else -> return@setOnMenuItemClickListener true
-//                }
-//            }
-//            popupMenu.show()
-//
-//                imgEventListPopup.setOnClickListener {
-//                val popup = PopupMenu(context, imgEventListPopup)
-//                popup.inflate(R.menu.eventlist_popup_menu)
-//                popup.setOnMenuItemClickListener{
-//                    when(it.itemId) {
-//                    R.id.menu_rename_event -> {
-//                        //I'm reusing the dialog box that I created for Add New Board, I'm replacing it with with task list
-//                        val inflater = activity.layoutInflater.inflate(R.layout.dialog_add_new_board,null)
-//                        inflater.inputBoardName.hint = events[position].name
-//                        AlertDialog.Builder(activity)
-//                            .setTitle("Rename Event List")
-//                            .setView(inflater)
-//                            .setPositiveButton("Submit"){_,_ ->
-//
-//                                val tag = "RenameEventDialog"
-//                                listener.onMenuOptionPopupClick(events[position].id, events[position].name)
-//                            }
-//                            .create()
-//                            .show()
-//                        return@setOnMenuItemClickListener true
-//                    }
-//
-//                    else -> return@setOnMenuItemClickListener true
-//                    }
-//                }
-//                popup.show()
-//            }
         }
     }
 

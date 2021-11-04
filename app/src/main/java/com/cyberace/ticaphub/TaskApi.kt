@@ -8,89 +8,11 @@ import retrofit2.http.*
 
 interface TaskApi {
 
-    //APIs CREATED IN MY LOCAL DB, MIGHT DELETE LATER
-
-    //Add a PHP to only retrieve tasks concerning the user account only
-//    @GET("tasks.php") //Add the uri segment to access the tasks from db
-//    suspend fun getTasks(): Response<List<TaskCardClass>>
-
-//    @GET("task.php") //Add the uri segment to access the tasks from db
-//    suspend fun getTask(@Query(value = "taskID") taskID: Int): Response<TaskCardClass>
-
-//    @GET("boards.php") //Add the uri segment to access the tasks from db
-//    suspend fun getBoards(@Query(value = "eventID") eventID: Int): Response<List<TaskListClass>>
-
-//    @GET("events.php")
-//    suspend fun getEvents(): Response<List<EventClass>>
-
-//    @FormUrlEncoded
-//    @POST("user-login.php")
-//    suspend fun getUser(
-//        @Field("email") email: String,
-//        @Field("password") password: String
-//    ): Response<UserClass>
-
-//    //Add TICAP ID id soon here kapag may laravel na
-//    @FormUrlEncoded
-//    @POST("add-board.php")
-//    suspend fun addBoard(
-//        @Field("board_name") boardName: String,
-//        @Field("event_id") eventID: Int,
-//        @Field("user_id") userID: Int
-//    ): Response<ResponseClass>
-
-//    @FormUrlEncoded
-//    @POST("add-task.php")
-//    suspend fun addTask(
-//        @Field("task_title") taskName: String,
-//        @Field("board_id") boardID: Int,
-//        @Field("user_id") userID: Int
-//    ): Response<ResponseClass>
-
-//    //Add TICAP ID mare galing sa user login pero later na kapag may laravel implementations na
-//    @FormUrlEncoded
-//    @POST("add-event.php")
-//    suspend fun addEvent(
-//        @Field("event_name") eventName: String
-//    ): Response<ResponseClass>
-
-//    @FormUrlEncoded
-//    @POST("move-task.php")
-//    suspend fun moveTask(
-//        @Field("task_id") taskID: Int,
-//        @Field("board_id") boardID: Int,
-//    ): Response<ResponseClass>
-
-    //Hindi ko na siya isasama sa updated api, kinuha ko na lang yung eventID from repeated intent pass; update: nvm HAHAHAHA
-    //Sa response class ko na lang siya nilagay since 1 value lang naman need ko kunin
-//    @GET("get-event-id.php") //Add the uri segment to access the tasks from db
-//    suspend fun getEventID(@Query(value = "listID") listID: Int): Response<ResponseClass>
-
-//    @GET("activity.php") //Add the uri segment to access the tasks from db
-//    suspend fun getActivities(@Query(value = "taskID") taskID: Int): Response<List<ActivityClass>>
-
-    //What I did is that "if comments doesn't file attached -> use addActivity" else -> use addActivityWithFile
-//    @FormUrlEncoded
-//    @POST("add-activity.php")
-//    suspend fun addActivity(
-//        @Field("description") description: String,
-//        @Field("user_id") userID: Int,
-//        @Field("task_id") taskID: Int
-//    ): Response<ResponseClass>
-
-    @Multipart
-    @POST("add-activity.php")
-    suspend fun uploadImage(
-        @Part fileUploaded: MultipartBody.Part,
-        @Part("event_id") eventID: RequestBody
-
-    ): Response<ResponseClass>
-
     ///////////////////////////////////////////
     //NEW APIs USING PATH AND FROM THE SERVER//
     ///////////////////////////////////////////
 
-    /////////////AUTHENTICATION API////////////////
+    /////////////AUTHENTICATION/USER DETAILS API////////////////
     @FormUrlEncoded
     @POST("login")
     suspend fun getUser(
@@ -102,6 +24,22 @@ interface TaskApi {
     @POST("logout")
     suspend fun logoutUser(
         @Header("Authorization") authHeader: String
+    ): Response<ResponseClass>
+
+    @Multipart
+    @POST("user/{userID}")
+    suspend fun updateUser(
+        @Header("Authorization") authHeader: String,
+        @Path("userID") taskID: Int,
+//        @Part("first_name") first_name: String,
+//        @Part("middle_name") middle_name: String,
+//        @Part("last_name") last_name: String,
+
+        @Part("first_name") first_name: RequestBody,
+        @Part("middle_name") middle_name: RequestBody,
+        @Part("last_name") last_name: RequestBody,
+        @Part profile_picture: MultipartBody.Part?
+
     ): Response<ResponseClass>
 
     /////////////EVENTS API////////////////
@@ -194,9 +132,14 @@ interface TaskApi {
 //        @Field("members[0]") members: Int,
     ): Response<ResponseClass>
 
+    @GET("officers") //Add the uri segment to access the tasks from db
+    suspend fun getOfficers(
+        @Header("Authorization") authHeader: String
+    ): Response<List<User>>
+
     @FormUrlEncoded
     @PUT("events/0/lists/0/tasks/{taskID}")
-    suspend fun moveTask(
+    suspend fun updateTask(
         @Header("Authorization") authHeader: String,
         @Path("taskID") taskID: Int,
         @Field("title") title: String,
@@ -205,11 +148,12 @@ interface TaskApi {
         @Field("list") boardID: Int
     ): Response<ResponseClass>
 
-    //UPDATE, MERON NA PALA ACTIVITIES UNDER TASK JSON SO BAKA OBSOLETE NA TO
-//    @GET("activity.php") //Add the uri segment to access the tasks from db
-//    suspend fun getActivities(@Query(value = "taskID") taskID: Int): Response<List<ActivityClass>>
+    @DELETE("events/0/lists/0/tasks/{taskID}")
+    suspend fun deleteTask(
+        @Header("Authorization") authHeader: String,
+        @Path("taskID") listID: Int
+    ): Response<ResponseClass>
 
-    //TODO ASAP: ONLY MEMBERS CAN COMMENT DAPAT
     @Multipart
     @POST("events/{eventID}/lists/{listID}/tasks/{taskID}")
     suspend fun addActivity(
@@ -220,5 +164,4 @@ interface TaskApi {
         @Part("description") description: RequestBody,
         @Part file: MultipartBody.Part?
     ): Response<ActivityClass>
-
 }

@@ -45,7 +45,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import android.content.ContentResolver
+import android.content.Intent
+import com.cyberace.ticaphub.UploadRequestBody
 import okhttp3.MultipartBody
+import kotlin.collections.ArrayList
 
 
 class TaskDetailsActivity : AppCompatActivity(),
@@ -53,57 +56,64 @@ class TaskDetailsActivity : AppCompatActivity(),
 
     private val commentsAdapter = TaskDetailsAdapter(this, this)
     private lateinit var fetchedTask: TaskCardClass
-    private var requestBody:UploadRequestBody? = null
+    private var requestBody: UploadRequestBody? = null
+
+    private val startActivityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+        if (it.resultCode == RESULT_OK){
+            fetchTask()
+        }
+    }
 
     @SuppressLint("SetTextI18n")
     private val resultContract = registerForActivityResult(
         ActivityResultContracts.OpenDocument(),
         ActivityResultCallback {
 
-            //Get the File Name of the selected file
-            val uriString = it.toString()
-            val myFile = File(uriString)
-            var displayName: String? = null
-
-            if (uriString.startsWith("content://")) {
-                var cursor: Cursor? = null
-                try {
-                    cursor = this.contentResolver.query(it, null, null, null, null)
-                    if (cursor != null && cursor.moveToFirst()) {
-                        displayName =
-                            cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+            if (it?.toString() != null) {
+                //Get the File Name of the selected file
+                val uriString = it.toString()
+                var displayName: String? = null
+                val myFile = File(uriString)
+                if (uriString.startsWith("content://")) {
+                    var cursor: Cursor? = null
+                    try {
+                        cursor = this.contentResolver.query(it, null, null, null, null)
+                        if (cursor != null && cursor.moveToFirst()) {
+                            displayName =
+                                cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        }
+                    } finally {
+                        cursor!!.close()
                     }
-                } finally {
-                    cursor!!.close()
+                } else if (uriString.startsWith("file://")) {
+                    displayName = myFile.name
                 }
-            } else if (uriString.startsWith("file://")) {
-                displayName = myFile.name
-            }
-            Log.e("SELECTED FILE", displayName!!)
-            linearLayoutFileUploaded.visibility = View.VISIBLE
-            txtViewFileName.text = displayName
 
-            //Get the content type of the selected File
-            val contentResolver: ContentResolver = this.contentResolver
-            val type = contentResolver.getType(it)!!
+                linearLayoutFileUploaded.visibility = View.VISIBLE
+                txtViewFileName.text = displayName
 
-            if (Build.VERSION.SDK_INT >= 19){
-                val parcelFileDescriptor =
-                    contentResolver.openFileDescriptor(it, "r", null) ?: return@ActivityResultCallback
+                //Get the content type of the selected File
+                val contentResolver: ContentResolver = this.contentResolver
+                val type = contentResolver.getType(it)!!
 
-                val inputStream = FileInputStream(parcelFileDescriptor.fileDescriptor)
-                val file = File(cacheDir, displayName)
-                val outputStream = FileOutputStream(file)
-                inputStream.copyTo(outputStream)
+                if (Build.VERSION.SDK_INT >= 19){
+                    val parcelFileDescriptor =
+                        contentResolver.openFileDescriptor(it, "r", null) ?: return@ActivityResultCallback
 
-                progressBar1.visibility = View.VISIBLE
-                progressBar1.progress = 0
-                Log.e("CONTENT-TYPE", type)
-                requestBody = UploadRequestBody(file, type, this)
+                    val inputStream = FileInputStream(parcelFileDescriptor.fileDescriptor)
+                    val file = File(cacheDir, displayName!!)
+                    val outputStream = FileOutputStream(file)
+                    inputStream.copyTo(outputStream)
 
-            }else{
-                txtViewFileName.text = "File uploading is unavailable in the current Android Version"
-                Toast.makeText(this@TaskDetailsActivity, "File uploading is unavailable in the current Android Version", Toast.LENGTH_LONG).show()
+                    progressBar1.visibility = View.VISIBLE
+                    progressBar1.progress = 0
+                    Log.e("CONTENT-TYPE", type)
+                    requestBody = UploadRequestBody(file, type, this)
+
+                }else{
+                    txtViewFileName.text = "File uploading is unavailable in the current Android Version"
+                    Toast.makeText(this@TaskDetailsActivity, "File uploading is unavailable in the current Android Version", Toast.LENGTH_LONG).show()
+                }
             }
 
         }
@@ -158,7 +168,7 @@ class TaskDetailsActivity : AppCompatActivity(),
         }
 
         imgViewUploadFile.setOnClickListener {
-            browseDocuments()
+            resultContract.launch(arrayOf("*/*"))
          }
 
         btnCancelUpload.setOnClickListener {
@@ -210,9 +220,64 @@ class TaskDetailsActivity : AppCompatActivity(),
             R.id.menu_refresh_data -> {
                 refreshLayoutTaskDetails.isRefreshing = true
                 fetchTask()
-//                fetchComments()
                 refreshLayoutTaskDetails.isRefreshing = false
             }
+
+            R.id.menu_update_task -> {
+                val intent = Intent(this, UpdateTaskActivity::class.java).apply {
+                    putExtra("taskID", fetchedTask.id)
+                    putExtra("listID", fetchedTask.list_id)
+                    putExtra("taskTitle", fetchedTask.title)
+                    putExtra("taskDesc", fetchedTask.description)
+                    putIntegerArrayListExtra("taskMembers", ArrayList(fetchedTask.users.map { it.id }))
+                }
+                startActivityResultContract.launch(intent)
+            }
+
+            R.id.menu_delete_task -> {
+
+                AlertDialog.Builder(this@TaskDetailsActivity)
+                    .setTitle("Confirm Task List Deletion")
+                    .setMessage("\"" + fetchedTask.title + "\"" + " will be deleted permanently.")
+                    .setPositiveButton("Delete"){_,_ ->
+
+                        val tag = "RenameEventDialog"
+
+                        lifecycleScope.launch {
+                            val response = try {
+                                RetrofitInstance.api.deleteTask(
+                                    "Bearer " + this@TaskDetailsActivity
+                                        .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                        .getString("userToken", "0"),
+                                    fetchedTask.id
+                                )
+                            } catch(e: IOException) {
+                                Log.e(tag, e.message.toString())
+                                return@launch
+                            } catch (e: HttpException) {
+                                Log.e(tag, "HttpException, unexpected response")
+                                return@launch
+                            }
+                            if(response.isSuccessful && response.code() == 200) {
+                                Toast.makeText(this@TaskDetailsActivity, response.body()!!.message, Toast.LENGTH_SHORT).show()
+                                setResult(RESULT_OK)
+                                this@TaskDetailsActivity.finish()
+                                return@launch
+                            } else {
+                                Toast.makeText(this@TaskDetailsActivity,"Operation failed with code: " + response.code(), Toast.LENGTH_SHORT).show()
+                                Log.e(tag, "Error on Response")
+                                return@launch
+                            }
+                        }
+                    }
+                    .setNegativeButton("Cancel"){_, _ ->
+                        Toast.makeText(this@TaskDetailsActivity, "Operation cancelled.", Toast.LENGTH_SHORT).show()
+                    }
+                    .create()
+                    .show()
+            }
+
+            //TODO Delete Task Naman
 
         }
         return super.onOptionsItemSelected(item)
@@ -330,7 +395,7 @@ class TaskDetailsActivity : AppCompatActivity(),
         val tagName = "MoveTaskFunction"
         lifecycleScope.launch {
             val response = try {
-                RetrofitInstance.api.moveTask(
+                RetrofitInstance.api.updateTask(
                     "Bearer " + this@TaskDetailsActivity
                         .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
                         .getString("userToken", "0"),
@@ -435,10 +500,6 @@ class TaskDetailsActivity : AppCompatActivity(),
     }
 
 
-    //Ask peter about the latest db for this
-    override fun getUserProfilePic(userID: Int): String {
-        TODO("Not yet implemented")
-    }
 
     override fun onFileClick(position: Int) {
         val downloadBaseUrl = "https://www.ticaphub.com/api/download/"
@@ -465,25 +526,6 @@ class TaskDetailsActivity : AppCompatActivity(),
 
     private fun getMimeFromURLRequest(url: String): String {
         return URLConnection.guessContentTypeFromName(url)
-    }
-
-    private fun browseDocuments() {
-//        val mimeTypes = arrayOf(
-//            "application/msword",
-//            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  // .doc & .docx
-//            "application/vnd.ms-powerpoint",
-//            "application/vnd.openxmlformats-officedocument.presentationml.presentation",  // .ppt & .pptx
-//            "application/vnd.ms-excel",
-//            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  // .xls & .xlsx
-//            "text/plain",
-//            "application/pdf",
-//            "application/zip",
-//        )
-        val mimeTypes = arrayOf(
-            "*/*"
-        )
-
-        resultContract.launch(mimeTypes)
     }
 
     override fun onProgressUpdate(percentage: Int) {

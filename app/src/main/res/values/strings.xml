@@ -18,6 +18,7 @@
     <string name="title_delete_event">Delete Event</string>
     <string name="title_rename_task_list">Rename List</string>
     <string name="title_delete_task_list">Delete List</string>
+    <string name="title_delete_task">Delete Task</string>
     <string name="activity">Activity</string>
     <string name="image_of_other_user">Image of Other User</string>
     <string name="your_profile_picture">Your Profile Picture</string>
@@ -29,4 +30,6 @@
     <string name="popup_content_desc">Popup Menu</string>
     <string name="popup_menu_for_event_list">Popup Menu For Event List</string>
     <string name="no_image_prompter">No image prompter</string>
+    <string name="title_update_task_details">Update Task Details</string>
+    <string name="default_task_desc">This task is created in TICaP HUB mobile. Description is not set</string>
 </resources>

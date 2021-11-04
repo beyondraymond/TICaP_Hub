@@ -132,7 +132,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
             R.id.menu_add_task_list -> {
                 val inflater = this.layoutInflater.inflate(R.layout.dialog_add_new_board,null)
                 AlertDialog.Builder(this)
-                    .setTitle("Enter Board Name")
+                    .setTitle("Enter Task List Name")
                     .setView(inflater)
                     .setPositiveButton("Submit"){_,_ ->
 
@@ -201,7 +201,7 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
                                             intent.getIntExtra("eventID", 0),
                                             clickedItem.id, //ListID
                                             inflater.inputBoardName.text.toString(),
-                                            "This task is created thru TICaP HUB mobile. Descrition is not set",
+                                            resources.getString(R.string.default_task_desc),
 //                                            getSharedPreferences("loginCredential", Context.MODE_PRIVATE).getInt("userID", 0)
                                         )
                                         //Add user id, created date, etc. Or whatevah
