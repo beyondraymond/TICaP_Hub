@@ -102,12 +102,12 @@ class TaskDetailsAdapter(
                 constraintOutgoing.visibility = View.VISIBLE
                 txtOutgoingDate.text = dateOutputFormat.format(commentDate!!)
                 txtOutgoingComment.text = comments[position].description
-                txtOutgoingName.text = comments[position].user.first_name + " " + comments[position].user.last_name
+                txtOutgoingName.text = "You"
 
-                if(comments[position].user.profile_picture == "profiles/default-img.png"){
-                    Picasso.get().load("https://ticaphub.com/assets/default-img.png").into(imgOutgoing)
-                }else{
-                    Picasso.get().load("https://ticaphub.com/storage/"+comments[position].user.profile_picture).into(imgOutgoing)
+                if(comments[position].user.profile_picture != null) {
+                    Picasso.get()
+                        .load("https://ticaphub.com/storage/" + comments[position].user.profile_picture)
+                        .into(imgOutgoing)
                 }
 
                 if(comments[position].files.isEmpty()){
@@ -125,10 +125,10 @@ class TaskDetailsAdapter(
                 txtIncomingComment.text = comments[position].description
                 txtIncomingName.text = comments[position].user.first_name + " " + comments[position].user.last_name
 
-                if(comments[position].user.profile_picture == "profiles/default-img.png"){
-                    Picasso.get().load("https://ticaphub.com/assets/default-img.png").into(imgIncoming)
-                }else{
-                    Picasso.get().load("https://ticaphub.com/storage/"+comments[position].user.profile_picture).into(imgIncoming)
+                if(comments[position].user.profile_picture != null) {
+                    Picasso.get()
+                        .load("https://ticaphub.com/storage/" + comments[position].user.profile_picture)
+                        .into(imgIncoming)
                 }
 
                 if(comments[position].files.isEmpty()){

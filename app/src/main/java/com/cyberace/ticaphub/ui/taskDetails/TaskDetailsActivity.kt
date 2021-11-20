@@ -142,29 +142,32 @@ class TaskDetailsActivity : AppCompatActivity(),
         }
 
         btnSendComment.setOnClickListener {
-            lifecycleScope.launch {
-                val tagName = "SendComment1-getEvent"
-                val response = try {
-                    RetrofitInstance.api.getEventID(
-                        "Bearer " + this@TaskDetailsActivity
-                            .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
-                            .getString("userToken", "0"),
-                        fetchedTask.id)
-                } catch (e: IOException) {
-                    Log.e(tagName, e.message.toString())
-                    return@launch
-                } catch (e: HttpException) {
-                    Log.e(tagName, "HttpException, unexpected response")
-                    return@launch
-                }
-                if (response.isSuccessful && response.body() != null) {
-                    sendComment(response.body()!!.event_id)
-                    return@launch
-                } else {
-                    Log.e(tagName, "Response not successful with code " + response.code())
+            if(editTxtComment.text.isEmpty()){
+                Toast.makeText(this@TaskDetailsActivity, "Error: Activity Report field is empty.", Toast.LENGTH_LONG).show()
+            }else{
+                lifecycleScope.launch {
+                    val tagName = "SendComment1-getEvent"
+                    val response = try {
+                        RetrofitInstance.api.getEventID(
+                            "Bearer " + this@TaskDetailsActivity
+                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                .getString("userToken", "0"),
+                            fetchedTask.id)
+                    } catch (e: IOException) {
+                        Log.e(tagName, e.message.toString())
+                        return@launch
+                    } catch (e: HttpException) {
+                        Log.e(tagName, "HttpException, unexpected response")
+                        return@launch
+                    }
+                    if (response.isSuccessful && response.body() != null) {
+                        sendComment(response.body()!!.event_id)
+                        return@launch
+                    } else {
+                        Log.e(tagName, "Response not successful with code " + response.code())
+                    }
                 }
             }
-
         }
 
         imgViewUploadFile.setOnClickListener {
@@ -181,11 +184,18 @@ class TaskDetailsActivity : AppCompatActivity(),
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.taskdetails_action_bar_menu, menu)
+        if(::fetchedTask.isInitialized && !isCreator(fetchedTask)){
+            menu?.findItem(R.id.menu_move_task)?.isVisible = false
+            menu?.findItem(R.id.menu_update_task)?.isVisible = false
+            menu?.findItem(R.id.menu_delete_task)?.isVisible = false
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
+
+
+        when(item.itemId) {
             android.R.id.home -> {
                 this.finish()
             }
@@ -193,7 +203,7 @@ class TaskDetailsActivity : AppCompatActivity(),
             R.id.menu_move_task -> {
 
                 val tagName = "MoveTaskLevel1"
-//                Getting event ID first from the list ID
+                //Getting event ID first from the list ID
                 lifecycleScope.launch {
                     val response = try {
                         RetrofitInstance.api.getEventID(
@@ -277,8 +287,6 @@ class TaskDetailsActivity : AppCompatActivity(),
                     .show()
             }
 
-            //TODO Delete Task Naman
-
         }
         return super.onOptionsItemSelected(item)
     }
@@ -316,8 +324,7 @@ class TaskDetailsActivity : AppCompatActivity(),
                 fetchedTask = response.body()!!
                 txtTaskTitle.text = fetchedTask.title
                 txtTaskDesc.text = fetchedTask.description
-                //TODO ILAGAY DIN KUNG SAANG LIST KABILANG SI TASK PARA ALAM NI USER
-                //TODO ILAGAY DIN KUNG SINO SINO MGA MEMBERS NG TASK
+
                 try {
                     val taskDate = dateSQLFormat.parse(fetchedTask.updated_at)!!
                     txtLastUpdated.text = "Last Updated: " + dateFormatter.format(taskDate)
@@ -341,6 +348,8 @@ class TaskDetailsActivity : AppCompatActivity(),
                     editTxtComment.isEnabled = false
                     imgViewUploadFile.isEnabled = false
                 }
+
+                invalidateOptionsMenu()
                 return@launch
             } else {
                 txtTaskTitle.text = "Response not successful"
@@ -368,14 +377,23 @@ class TaskDetailsActivity : AppCompatActivity(),
                 return@launch
             }
             if (response.isSuccessful && response.body() != null) {
+
+                val taskLists= response.body()!!.lists.toMutableList()
+                for (list in taskLists){
+                    if(list.id == fetchedTask.list_id){
+                        taskLists.remove(list)
+                        break
+                    }
+                }
+
                 val inflater = this@TaskDetailsActivity.layoutInflater.inflate(R.layout.dialog_choose_task_list,null)
                 inflater.spinnerTaskLists.adapter = ArrayAdapter(this@TaskDetailsActivity,
-                    R.layout.support_simple_spinner_dropdown_item, response.body()!!.lists.map { it.title })
+                    R.layout.support_simple_spinner_dropdown_item, taskLists.map { it.title })
                 AlertDialog.Builder(this@TaskDetailsActivity)
                     .setTitle("Move Task To Another List")
                     .setView(inflater)
                     .setPositiveButton("Submit"){_,_ ->
-                        response.body()!!.lists.forEach {
+                        taskLists.forEach {
                             if (it.title == inflater.spinnerTaskLists.selectedItem.toString()){
                                 moveTask(it.id)
                             }
@@ -414,6 +432,7 @@ class TaskDetailsActivity : AppCompatActivity(),
             }
             if(response.isSuccessful && response.code() == 200) {
                 Toast.makeText(this@TaskDetailsActivity, "Operation Completed: " + response.body()!!.message , Toast.LENGTH_SHORT).show()
+                fetchTask()
                 setResult(RESULT_OK)
                 return@launch
             } else {
@@ -484,6 +503,13 @@ class TaskDetailsActivity : AppCompatActivity(),
         }
     }
 
+    private fun isCreator(selectedTask: TaskCardClass): Boolean{
+        val userID = this@TaskDetailsActivity
+            .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+            .getInt("userID", 0)
+        return userID == selectedTask.user_id
+    }
+
     private fun isMemberOrCreator(selectedTask: TaskCardClass): Boolean{
         val userID = this@TaskDetailsActivity
             .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
@@ -498,6 +524,7 @@ class TaskDetailsActivity : AppCompatActivity(),
         }
         return false
     }
+
 
 
 

@@ -48,7 +48,6 @@ class EventboardActivity : AppCompatActivity(), EventboardAdapter.OnItemClickLis
         rvEventBoard.adapter = eventBoardAdapter
         rvEventBoard.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
-        //Move tAsk bhie
 
         fetchBoards()
 

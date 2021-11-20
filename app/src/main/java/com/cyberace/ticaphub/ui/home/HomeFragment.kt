@@ -66,6 +66,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
                         .getString("userToken", "0")
                 )
             } catch (e: IOException) {
+                refreshLayoutHome.isRefreshing = false
                 rvHome.visibility = View.GONE
                 txtPromptHome.text = "IO Error: Failed to connect to the server"
                 txtPromptHome.visibility = View.VISIBLE
@@ -73,6 +74,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
                 Log.e(tagName, "IO Error:" + e.message.toString())
                 return@launch
             } catch (e: HttpException) {
+                refreshLayoutHome.isRefreshing = false
                 rvHome.visibility = View.GONE
                 txtPromptHome.text = "HTTP Error: Failed to connect to the server"
                 txtPromptHome.visibility = View.VISIBLE
@@ -80,6 +82,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
                 Log.e(tagName, "HTTP Error:" + e.message.toString())
                 return@launch
             } catch (e: JsonSyntaxException) {
+                refreshLayoutHome.isRefreshing = false
                 Toast.makeText(requireActivity(), "Token Expired. Login Again.", Toast.LENGTH_LONG).show()
                 val sharedPref = this@HomeFragment.requireActivity().getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
                 val editor = sharedPref.edit()

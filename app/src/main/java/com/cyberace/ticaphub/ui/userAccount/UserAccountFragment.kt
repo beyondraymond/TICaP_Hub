@@ -137,11 +137,12 @@ class UserAccountFragment : Fragment(R.layout.fragment_user_account),
                 editMiddleName.setText(response.body()!!.middle_name)
                 editLastName.setText(response.body()!!.last_name)
 
-                if(response.body()!!.profile_picture == "profiles/default-img.png"){
-                    Picasso.get().load("https://ticaphub.com/assets/default-img.png").into(imgProfilePic)
-                }else{
-                    Picasso.get().load("https://ticaphub.com/storage/" + response.body()!!.profile_picture).into(imgProfilePic)
+                if(response.body()!!.profile_picture != null) {
+                    Picasso.get()
+                        .load("https://ticaphub.com/storage/" + response.body()!!.profile_picture)
+                        .into(imgProfilePic)
                 }
+
             } else {
                 val msg= "Response not successful"
                 txtErrorMessage.text = "$msg. User details cannot be fetched."
@@ -247,7 +248,7 @@ class UserAccountFragment : Fragment(R.layout.fragment_user_account),
                         return@launch
                     }
                     if(response.isSuccessful && response.code() == 200) {
-                        //TODO Add alert button for update
+
                         AlertDialog.Builder(requireContext())
                             .setTitle("User Details Updated Successfully")
                             .setMessage("Your personal information has been updated.")
@@ -269,7 +270,6 @@ class UserAccountFragment : Fragment(R.layout.fragment_user_account),
 
         btnUploadImage.setOnClickListener {
             resultContract.launch(arrayOf("image/jpeg", "image/jpg", "image/png"))
-            //TODO TEST KUNG PANO lagyan ng loading buffer yung image
         }
     }
 

@@ -50,9 +50,6 @@ class MainActivity : AppCompatActivity() {
 //            super.onBackPressed();
 //        }
 
-        //TODO FIX ONBACK KEY PARA HINDI SIYA WHITE SCREEN
-        //TODO FIX ALSO NA AFTER LOGIN, HINDI NA PWEDE MAGBACK SA LOGIN SCREEN SI USER, this.finish ata yun
-
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         if(navView.selectedItemId == R.id.navigation_home){
             this.finish()
