@@ -50,6 +50,7 @@ class HomeFragment : Fragment(R.layout.fragment_home),
 
         Intent(activity, TaskDetailsActivity::class.java).apply {
             putExtra("taskID", clickedItem.id)
+            putExtra("committeeID", clickedItem.committee_id)
             startActivity(this)
         }
     }
@@ -97,16 +98,42 @@ class HomeFragment : Fragment(R.layout.fragment_home),
             }
             if (response.isSuccessful && response.body() != null) {
                 refreshLayoutHome.isRefreshing = false
-                if (response.body()!!.tasks.isEmpty()){
-                    rvHome.visibility = View.GONE
-                    txtPromptHome.visibility = View.VISIBLE
-                    imageViewHome.visibility = View.VISIBLE
-                }else{
-                    rvHome.visibility = View.VISIBLE
-                    txtPromptHome.visibility = View.GONE
-                    imageViewHome.visibility = View.GONE
-                    taskAdapter.todos = response.body()!!.tasks
+                when{
+                    response.body()!!.tasks == null && response.body()!!.committee_tasks != null && response.body()!!.committee_tasks.isNotEmpty() -> {
+                        rvHome.visibility = View.VISIBLE
+                        txtPromptHome.visibility = View.GONE
+                        imageViewHome.visibility = View.GONE
+                        taskAdapter.todos = response.body()!!.committee_tasks
+                    }
+                    response.body()!!.tasks != null && response.body()!!.tasks.isNotEmpty() && response.body()!!.committee_tasks == null -> {
+                        rvHome.visibility = View.VISIBLE
+                        txtPromptHome.visibility = View.GONE
+                        imageViewHome.visibility = View.GONE
+                        taskAdapter.todos = response.body()!!.tasks
+                    }
+                    else -> {
+                        rvHome.visibility = View.GONE
+                        txtPromptHome.visibility = View.VISIBLE
+                        imageViewHome.visibility = View.VISIBLE
+                    }
                 }
+
+//TODO MIGHT DELETE THE LINES BELOW SOON
+//                if (response.body()!!.tasks == null && response.body()!!.committee_tasks.isEmpty()){
+//                    rvHome.visibility = View.GONE
+//                    txtPromptHome.visibility = View.VISIBLE
+//                    imageViewHome.visibility = View.VISIBLE
+//                }else if(response.body()!!.tasks.isEmpty() && response.body()!!.committee_tasks == null){
+//                    rvHome.visibility = View.GONE
+//                    txtPromptHome.visibility = View.VISIBLE
+//                    imageViewHome.visibility = View.VISIBLE
+//                }
+//                else{
+//                    rvHome.visibility = View.VISIBLE
+//                    txtPromptHome.visibility = View.GONE
+//                    imageViewHome.visibility = View.GONE
+//                    taskAdapter.todos = response.body()!!.tasks
+//                }
             } else {
                 refreshLayoutHome.isRefreshing = false
                 val msg= "Response not successful"

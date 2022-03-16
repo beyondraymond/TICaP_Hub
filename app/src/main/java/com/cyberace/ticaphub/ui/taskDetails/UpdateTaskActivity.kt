@@ -2,12 +2,10 @@ package com.cyberace.ticaphub.ui.taskDetails
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.cyberace.ticaphub.R
@@ -20,6 +18,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.cyberace.ticaphub.model.Ticap
 
 
 class UpdateTaskActivity : AppCompatActivity(),
@@ -46,9 +45,12 @@ class UpdateTaskActivity : AppCompatActivity(),
         editTaskDescription.setText(intent.getStringExtra("taskDesc"))
 
         btnAddMember.setOnClickListener {
+            val ticap = Ticap(0, "", 0, 0,
+                0,0,0,0,
+                0,0,"","",0)
             var selectedUser = User(0, "",
                 "", "", "", 0, "", "", "",
-            0, listOf(), listOf(), "")
+            0, listOf(), listOf(), "", listOf(), ticap)
             nonMembersMutableList.forEach {
                 if(it.first_name + " " + it.middle_name.substring(0,1) + " " + it.last_name == autoCompleteTextView.text.toString()){
                     selectedUser = it
@@ -70,7 +72,6 @@ class UpdateTaskActivity : AppCompatActivity(),
 
         }
         btnUpdateTask.setOnClickListener {
-            val s = R.string.default_task_desc
             if(editTaskTitle.text.toString() == "" ){
                 txtErrorMessage.text = "Please enter a valid Task Title"
             }else if (editTaskDescription.text.toString() == "" ||

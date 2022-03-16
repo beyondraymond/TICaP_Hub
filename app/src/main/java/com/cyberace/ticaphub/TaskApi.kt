@@ -31,10 +31,6 @@ interface TaskApi {
     suspend fun updateUser(
         @Header("Authorization") authHeader: String,
         @Path("userID") taskID: Int,
-//        @Part("first_name") first_name: String,
-//        @Part("middle_name") middle_name: String,
-//        @Part("last_name") last_name: String,
-
         @Part("first_name") first_name: RequestBody,
         @Part("middle_name") middle_name: RequestBody,
         @Part("last_name") last_name: RequestBody,
@@ -116,6 +112,12 @@ interface TaskApi {
         @Path("taskID") taskID: Int
     ): Response<TaskCardClass>
 
+    @GET("committees/0/tasks/{taskID}")
+    suspend fun getCommitteeTask(
+        @Header("Authorization") authHeader: String,
+        @Path("taskID") taskID: Int
+    ): Response<TaskCardClass>
+
     @GET("home") //Add the uri segment to access the tasks from db
     suspend fun getAssignedTasks(
         @Header("Authorization") authHeader: String
@@ -164,4 +166,10 @@ interface TaskApi {
         @Part("description") description: RequestBody,
         @Part file: MultipartBody.Part?
     ): Response<ActivityClass>
+
+    @GET("committees/{committeeID}")
+    suspend fun getCommittee(
+        @Header("Authorization") authHeader: String,
+        @Path("committeeID") committeeID: Int
+    ): Response<List<CommitteeClass>>
 }

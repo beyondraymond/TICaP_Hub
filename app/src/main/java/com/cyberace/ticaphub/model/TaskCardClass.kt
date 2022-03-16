@@ -10,5 +10,8 @@ data class TaskCardClass(
     val updated_at: String,
     val activities: List<ActivityClass>,
     val task_creator: User,
-    val users: List<User>
+    val users: List<User>,
+    val committee_id: Int,
+    val status: String,
+    val pivot: PivotX
 )

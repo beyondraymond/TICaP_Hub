@@ -13,5 +13,7 @@ data class User(
     val ticap_id: Int,
     val tasks: List<TaskCardClass>,
     val roles: List<RolesClass>,
-    val message: String
+    val message: String,
+    val committee_tasks: List<TaskCardClass>,
+    val ticap: Ticap
 )

@@ -116,10 +116,28 @@ class UserAccountFragment : Fragment(R.layout.fragment_user_account),
             } catch (e: IOException) {
                 txtErrorMessage.text = "IO Error: Failed to connect to the server"
                 Log.e(tagName, "IO Error:" + e.message.toString())
+
+                Toast.makeText(requireActivity(), "Token Expired. Login Again.", Toast.LENGTH_LONG).show()
+                editor.clear()
+                editor.apply()
+
+                Intent(requireActivity(), LoginActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(this)
+                }
                 return@launch
             } catch (e: HttpException) {
                 txtErrorMessage.text = "HTTP Error: Failed to connect to the server"
                 Log.e(tagName, "HTTP Error:" + e.message.toString())
+
+                Toast.makeText(requireActivity(), "Token Expired. Login Again.", Toast.LENGTH_LONG).show()
+                editor.clear()
+                editor.apply()
+
+                Intent(requireActivity(), LoginActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(this)
+                }
                 return@launch
             } catch (e: JsonSyntaxException) {
                 Toast.makeText(requireActivity(), "Token Expired. Login Again.", Toast.LENGTH_LONG).show()

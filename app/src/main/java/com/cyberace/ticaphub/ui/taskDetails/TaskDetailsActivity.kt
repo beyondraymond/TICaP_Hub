@@ -125,6 +125,8 @@ class TaskDetailsActivity : AppCompatActivity(),
         setContentView(R.layout.activity_task_details)
 
         fetchTask()
+        //TODO ADD fetchCommitteeTask() sa iba pang bahagi ng program na may fetch task
+
         rvActivity.adapter = commentsAdapter
         rvActivity.layoutManager = LinearLayoutManager(this)
 
@@ -303,13 +305,134 @@ class TaskDetailsActivity : AppCompatActivity(),
         }
 
 
+        when{
+            intent.getIntExtra("committeeID", 0) > 0 ->{
+                lifecycleScope.launch {
+                    val response = try {
+                        RetrofitInstance.api.getCommitteeTask(
+                            "Bearer " + this@TaskDetailsActivity
+                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                .getString("userToken", "0"),
+                            intent.getIntExtra("taskID", 0)
+                        )
+                    } catch(e: IOException) {
+                        txtTaskTitle.text = "IO Error: Failed to connect to the server"
+                        Log.e(tag, "IO Error:" + e.message.toString())
+                        return@launch
+                    } catch (e: HttpException) {
+                        txtTaskTitle.text = "HTTP Error: Unexpected response from the server"
+                        Log.e(tag, "HTTP Error:" + e.message.toString())
+                        return@launch
+                    }
+                    if(response.isSuccessful && response.body() != null) {
+                        fetchedTask = response.body()!!
+                        txtTaskTitle.text = fetchedTask.title
+                        txtTaskDesc.text = fetchedTask.description
+                        txtStatus.visibility = View.VISIBLE
+                        txtStatus.text = "Status: " + fetchedTask.status
+
+                        //Add This
+                        fetchCommitteeName(fetchedTask.committee_id)
+                        try {
+                            val taskDate = dateSQLFormat.parse(fetchedTask.updated_at)!!
+                            txtLastUpdated.text = "Last Updated: " + dateFormatter.format(taskDate)
+                        } catch (e: Exception) {
+                            Log.e("Date Parse", e.message.toString())
+                        }
+
+                        textView5.visibility = View.GONE
+                        refreshLayoutTaskDetails.visibility = View.GONE
+                        linearLayoutAddComment.visibility = View.GONE
+
+                        val density = this@TaskDetailsActivity.resources.displayMetrics.density
+                        txtTaskTitle.post {
+                            constraintTaskTitle.setPadding(
+                                (10 * density + 0.5f).toInt(),
+                                (150 * density + 0.5f).toInt(),
+                                (10 * density + 0.5f).toInt(),
+                                0
+                            )
+                        }
+
+                        invalidateOptionsMenu()
+                        return@launch
+                    } else {
+                        txtTaskTitle.text = "Response not successful"
+                        Log.e("Retrofit-TaskDetails", response.errorBody().toString())
+                    }
+                }
+
+            }
+            else ->{
+                lifecycleScope.launch {
+                    val response = try {
+                        RetrofitInstance.api.getTask(
+                            "Bearer " + this@TaskDetailsActivity
+                                .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
+                                .getString("userToken", "0"),
+                            intent.getIntExtra("taskID", 0)
+                        )
+                    } catch(e: IOException) {
+                        txtTaskTitle.text = "IO Error: Failed to connect to the server"
+                        Log.e(tag, "IO Error:" + e.message.toString())
+                        return@launch
+                    } catch (e: HttpException) {
+                        txtTaskTitle.text = "HTTP Error: Unexpected response from the server"
+                        Log.e(tag, "HTTP Error:" + e.message.toString())
+                        return@launch
+                    }
+                    if(response.isSuccessful && response.body() != null) {
+                        fetchedTask = response.body()!!
+                        txtTaskTitle.text = fetchedTask.title
+                        txtTaskDesc.text = fetchedTask.description
+
+                        try {
+                            val taskDate = dateSQLFormat.parse(fetchedTask.updated_at)!!
+                            txtLastUpdated.text = "Last Updated: " + dateFormatter.format(taskDate)
+                        } catch (e: Exception) {
+                            Log.e("Date Parse", e.message.toString())
+                        }
+
+                        if (fetchedTask.activities.isEmpty()){
+                            refreshLayoutTaskDetails.visibility = View.GONE
+                            refreshLayoutEmptyList.visibility = View.VISIBLE
+                        }else{
+                            refreshLayoutEmptyList.visibility =  View.GONE
+                            refreshLayoutTaskDetails.visibility = View.VISIBLE
+                            commentsAdapter.comments = fetchedTask.activities
+                            rvActivity.scrollToPosition(commentsAdapter.comments.size-1)
+                        }
+                        //Check if user is member of task before allowing to comment
+                        if(!isMemberOrCreator(fetchedTask)){
+                            editTxtComment.hint = "Comment Disabled: \n You're not a member of this task"
+                            btnSendComment.isEnabled = false
+                            editTxtComment.isEnabled = false
+                            imgViewUploadFile.isEnabled = false
+                        }
+
+                        invalidateOptionsMenu()
+                        return@launch
+                    } else {
+                        txtTaskTitle.text = "Response not successful"
+                        Log.e("Retrofit-TaskDetails", response.errorBody().toString())
+                    }
+                }
+
+            }
+        }
+
+    }
+
+    private fun fetchCommitteeName(committeeID: Int){
+        val tag = "Fetch Committee"
+
         lifecycleScope.launch {
             val response = try {
-                RetrofitInstance.api.getTask(
+                RetrofitInstance.api.getCommittee(
                     "Bearer " + this@TaskDetailsActivity
                         .getSharedPreferences("loginCredential", Context.MODE_PRIVATE)
                         .getString("userToken", "0"),
-                    intent.getIntExtra("taskID", 0)
+                    committeeID
                 )
             } catch(e: IOException) {
                 txtTaskTitle.text = "IO Error: Failed to connect to the server"
@@ -321,41 +444,16 @@ class TaskDetailsActivity : AppCompatActivity(),
                 return@launch
             }
             if(response.isSuccessful && response.body() != null) {
-                fetchedTask = response.body()!!
-                txtTaskTitle.text = fetchedTask.title
-                txtTaskDesc.text = fetchedTask.description
 
-                try {
-                    val taskDate = dateSQLFormat.parse(fetchedTask.updated_at)!!
-                    txtLastUpdated.text = "Last Updated: " + dateFormatter.format(taskDate)
-                } catch (e: Exception) {
-                    Log.e("Date Parse", e.message.toString())
-                }
-
-                if (fetchedTask.activities.isEmpty()){
-                    refreshLayoutTaskDetails.visibility = View.GONE
-                    refreshLayoutEmptyList.visibility = View.VISIBLE
-                }else{
-                    refreshLayoutEmptyList.visibility =  View.GONE
-                    refreshLayoutTaskDetails.visibility = View.VISIBLE
-                    commentsAdapter.comments = fetchedTask.activities
-                    rvActivity.scrollToPosition(commentsAdapter.comments.size-1)
-                }
-                //Check if user is member of task before allowing to comment
-                if(!isMemberOrCreator(fetchedTask)){
-                    editTxtComment.hint = "Comment Disabled: \n You're not a member of this task"
-                    btnSendComment.isEnabled = false
-                    editTxtComment.isEnabled = false
-                    imgViewUploadFile.isEnabled = false
-                }
-
-                invalidateOptionsMenu()
+                txtCommitteeName.visibility = View.VISIBLE
+                txtCommitteeName.text = response.body()!![0].name + " Committee"
                 return@launch
             } else {
                 txtTaskTitle.text = "Response not successful"
                 Log.e("Retrofit-TaskDetails", response.errorBody().toString())
             }
         }
+
     }
 
     private fun fetchBoards(eventID: Int){
